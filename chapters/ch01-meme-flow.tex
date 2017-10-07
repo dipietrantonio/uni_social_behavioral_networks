@@ -25,8 +25,8 @@ In this model, the trace follows the shortest path tree from the source.
 So, having this model and a set of traces (and every trace contains all the nodes), is it possible to reconstruct the unknown social graph $G$? 
 
 \section{The First-Edge Algorithm}
-It turns out that having $O(n\Delta\log n)$ traces is sufficient for (perfect) reconstruction with high probability. In some graphs, $\Theta\left(\frac{n\Delta}{\log^2n}\right)$ traces are necessary.
-In the above statement, $n$ is the number of nodes in the graph and $\Delta$ is its maximum degree. 
+Authors in \cite{KDD13} shows that we can reconstruct (in most cases) the graph $G=(V, E)$ with high probability with a simple algorithm.
+ 
 \begin{algorithm}
 	\textbf{Input}: $T$, the set of traces\\
 	$E \gets \{\}$ //the set of edges in the graph \;
@@ -55,7 +55,7 @@ In the above statement, $n$ is the number of nodes in the graph and $\Delta$ is 
 	The probability of $\xi_1$ is given by
 	\begin{align}
 	\emph{Pr}\{\xi_1\} &= \emph{Pr}\{t[0] = x\}\emph{Pr}\{t[1] = y, y\in \{u, v\}\setminus\{x\}\ |\ t[0] = x\},\  x\in \{u, v\}\\
-	&= \frac{2}{n}\frac{1}{\deg{y}}, y \in \{u, v\}\\
+	&= \frac{2}{n}\frac{1}{\deg{x}}, x \in \{u, v\}\\
 	&\geq \frac{2}{n\Delta}.
 	\end{align}
 	

@@ -1,3 +1,6 @@
+*.blg
+*.bbl
+*.xml
 *.gz
 *.out
 *.toc
