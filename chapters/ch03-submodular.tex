@@ -1,0 +1,130 @@
+\chapter{Submodular functions}
+
+In this chapter we first look at the k-max cover problem. Then, we will se that this problem is part of a sequence of problems having the same structure and that can be solved essentially with the same algorithm. This class of problems is the one of submodular function optimization problems. 
+
+\section{k-max cover}
+
+
+Given $k \geq 1$ and a set of sets $S$, find a $S_k \subseteq S$, $|S_k| = k$, such that $|\bigcup_{s \in S_k}|$ is maximum. There is a similar problem, the set-cover problem, where we want to cover all the elements with the minimum number of sets. Here we have a budget of k sets, and we want to cover as many elements as possible. The following algorithm gives a greedy solution (in fact, in approximation algorithms there are not so many techniques you can use).
+
+\begin{algorithm}
+	\textbf{Input}: $S, k$\\
+	$X_0 \gets \emptyset$\;
+	\For{$i = 1, \ldots, k$}{
+		$s \gets \textit{argmin}_{s \in S}|X_{i-1} \cup s|$\;
+		$X_i \gets X_{i-1} \cup s$
+	}
+	\Return $X_k$
+	\vspace{10pt}
+	\caption{A greedy algorithm for k-max cover.}
+	\label{alg:kmaxgreedy}
+\end{algorithm}
+
+\begin{thm}
+	Algorithm \ref{alg:kmaxgreedy} returns a $1-\frac{1}{e}$ approximation of the optimal solution. 
+\end{thm}
+\begin{proof}
+	Define \textit{OPT} to be the value of the optimal solution. Let $t_i = |X_i|$. The value of the greedy solution is going to be $t_k$. Define 
+	\begin{equation}
+	n_i = |s_i - X_{i-1}|,
+	\end{equation} the number of new elements introduced at iteration $i$. Finally, define \begin{equation}
+	g_i = OPT - t_i,
+	\end{equation} that indicates how far the greedy solution is far from the optimal one at iteration $i$. We want to prove 
+	\begin{equation}
+	g_k \leq \frac{1}{e} \iff t_k \geq \left(1-\frac{1}{e}\right)\textit{OPT}
+	\end{equation}
+	\begin{lem}\label{lem1}
+		\begin{equation}
+		n_{i + 1} \geq \frac{g_i}{k}
+		\end{equation}
+	\end{lem}
+	In words, it looks at how far it is from the optimal solution at iteration $i$ and when it picks the $(i+1)$-th set it gets at least $\frac{1}{k}$ of what it was missing in the previous iteration. 
+	
+	\begin{proof}
+		Let $\{s_1^\star, s_2^\star, \ldots, s_k^\star\}$ be the sets representing the optimal solution and $O^\star$ their union. Let $T \subseteq O^\star$, maybe $T = O^\star - X_i$, for any $i$.
+		\begin{equation}
+		T \subseteq \bigcup_{i=1}^ks_i^\star \implies \exists i\ |s_i^\star \cap T| \geq \frac{|T|}{k}
+		\end{equation}
+		The fact that $O^\star$ is realized by the choice of $k$ sets that represents the optimal solution implies the existence of at least one set in $O^\star$ that covers at least a $\frac{1}{k}$ fraction of $T$. This is because if all sets in $O^\star$ covered less than that fraction, then overall they could not cover $T$ and therefore they couldn't cover $O^\star$.
+		
+		There exists one set in the optimal solution that covers at least $\frac{1}{k}$ fraction of $T$. Even for the specific $T$ suggested above. But if this is true, then it means that there exists one set in $S$ that covers at least a $\frac{1}{k}$ fraction of $O^\star - X_i = T$, and Algorithm \ref{alg:kmaxgreedy} is going to pick at iteration $i+1$ the one set that maximizes the number of new elements it picks. So the new set Algorithm \ref{alg:kmaxgreedy} will choose, will have at least as many elements as this one set in the optimal solution, that is $\frac{g_i}{k}$. 
+	\end{proof}
+	
+	\begin{lem}\label{lem:optkmc}
+		\begin{equation}
+		g_i \leq \left(1 - \frac{1}{k}\right)^i\textit{OPT},\ \forall i.
+		\end{equation}
+	\end{lem}
+	\begin{proof}
+		We prove this by induction. For $i = 0$, $g_0 = \textit{OPT}$ and so $g_0 \leq (1)\textit{OPT}$ it is true. Let's assume Lemma \ref{lem:optkmc} is true until $i$ and we want to prove it for $i+1$.
+		
+		\begin{align}
+		g_{i + 1} &= g_i - n_{i+1}\\
+		&\leq g_i - \frac{g_i}{k} \tag{By Lemma \ref{lem1}}\\
+		&= g_i\left(1 - \frac{1}{k}\right)\\
+		&\leq \textit{OPT}\left(1 - \frac{1}{k}\right) \tag{$g_i \leq \textit{OPT}$}\\
+		&< \textit{OPT}\left(1 - \frac{1}{k}\right)\left(1 - \frac{1}{k}\right)^i\\
+		&= \textit{OPT}\left(1 - \frac{1}{k}\right)^{i+1}.
+		\end{align}
+	\end{proof}
+	
+	Instantiating Lemma \ref{lem:optkmc} with $i = k$ we have
+	\begin{equation}
+	g_k \leq \left(1 -	\frac{1}{k}\right)^k\textit{OPT} = \frac{1}{e}\textit{OPT}
+	\end{equation}
+	
+\end{proof}
+In the next section we define what a submodular function is and then why k-max cover is a submodular optimization problem. We will discover that we can get a $(1 - \frac{1}{e})$ approximation for any problem in this class. 
+
+
+\section{Submodular functions}
+
+Given a \emph{ground set} $V$, a function $f:2^V \rightarrow \mathbb{R}$ is a set function. We would like to maximize the value of this kind of functions, but if we have no information about them, the only thing we can do is to compute $f$ for every set.
+
+Suppose now we know about some of $f$'s structure. The function $f$ is \emph{modular} (or \emph{linear}) if, given some set $A \in 2^V$,
+\begin{equation}\label{eq:modular}
+	f(A) = \sum_{i \in A} w(i),
+\end{equation}
+
+where $w(i)$ is the value of element $i$. The function \ref{eq:modular} can be maximized easily by simply looking at every one-element set ($n = |V|$ queries or computations) and return the set which contains all the elements with positive weight.
+
+Suppose now that we want to maximize the value of the function under the constraint that the set picked must have cardinality $k$. We choose the $k$ biggest values. These problems are easy with modular functions, and hard with general set functions.
+
+\begin{defn}[Submodular function]\label{def:submod1}
+	Submodular functions are more general than linear functions and are less general than set functions. A function $f$ is submodular if
+	\begin{equation}\label{eq:submod1}
+	\forall S, T \subseteq V\ f(S) + f(T) \geq f(S \cup T) + f(S \cap T).
+	\end{equation}
+\end{defn}
+
+They are a generalization of modular functions. In fact, one can prove that if $f$ is modular then Equation \ref{eq:submod1} holds only with equality.
+
+
+Let $S = A$, $B \subseteq A$, $x \not\in A$, $T = B \cup \{x\}$. Let's apply the submodularity definition
+
+\begin{equation}
+f(A) + f(B \cup \{x\}) = f(A \cup \{X\}) + f(B)
+\end{equation}
+that implies
+\begin{equation}\label{eq:marginretpre}
+f(B \cup \{x\}) - f(B) \geq f(A \cup\{x\}) - f(A).
+\end{equation}
+
+\begin{defn}
+	We define the \emph{marginal return} of adding an extra element $x$ to a set $A$ to be
+	\begin{equation}\label{eq:marginret}
+	\Delta(x|A) = f(A\cup\{x\}) - f(A).
+	\end{equation}
+\end{defn}
+
+Putting together equations \ref{eq:marginretpre} and \ref{eq:marginret} we get the economics Law of diminishing returns.
+
+\begin{defn}[Law of diminishing returns]\label{def:dimret}
+	Given $A, B$, with $B \subseteq A$, and an item $x \not\in B$, adding $x$ to $B$ increase the value of that set more than adding that element to a bigger set $A$ which includes $B$. Formally
+	\begin{equation}
+		\forall A, B \subseteq A, x\not\in B\ \Delta(x|B) \geq \Delta(x|A).
+	\end{equation} 
+\end{defn}
+
+We proved that Definition \ref{def:submod1} implies Definition \ref{def:dimret}. We now prove the opposite direction, to show that the two definitions are equivalent.
+
