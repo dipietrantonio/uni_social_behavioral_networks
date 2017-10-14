@@ -70,7 +70,7 @@ Given $k \geq 1$ and a set of sets $S$, find a $S_k \subseteq S$, $|S_k| = k$, s
 	
 	Instantiating Lemma \ref{lem:optkmc} with $i = k$ we have
 	\begin{equation}
-	g_k \leq \left(1 -	\frac{1}{k}\right)^k\textit{OPT} = \frac{1}{e}\textit{OPT}
+	g_k \leq \left(1 -	\frac{1}{k}\right)^k\textit{OPT} \leq \frac{1}{e}\textit{OPT}
 	\end{equation}
 	
 \end{proof}
@@ -110,21 +110,316 @@ that implies
 f(B \cup \{x\}) - f(B) \geq f(A \cup\{x\}) - f(A).
 \end{equation}
 
-\begin{defn}
-	We define the \emph{marginal return} of adding an extra element $x$ to a set $A$ to be
+\begin{defn}[Discrete derivative]
+	Given a set function $f:2^V \rightarrow \mathbb{R}$, $A \subseteq V$, $x \in V$, we define the \emph{discrete derivative} of $f$ at $A$ with respect to $x$ as
 	\begin{equation}\label{eq:marginret}
 	\Delta(x|A) = f(A\cup\{x\}) - f(A).
 	\end{equation}
 \end{defn}
 
-Putting together equations \ref{eq:marginretpre} and \ref{eq:marginret} we get the economics Law of diminishing returns.
+In economics, Equation \ref{eq:marginret} is called \emph{marginal return}. Putting together equations \ref{eq:marginretpre} and \ref{eq:marginret} we get the economics Law of diminishing returns.
 
-\begin{defn}[Law of diminishing returns]\label{def:dimret}
-	Given $A, B$, with $B \subseteq A$, and an item $x \not\in B$, adding $x$ to $B$ increase the value of that set more than adding that element to a bigger set $A$ which includes $B$. Formally
+\begin{defn}[Marginal returns property]\label{def:dimret}
+	Given $B \subseteq A \subseteq V$ and an item $x \in V \setminus B$, adding $x$ to $B$ increase the value of that set more than adding that element to a bigger set $A$ which includes $B$. Formally
 	\begin{equation}
-		\forall A, B \subseteq A, x\not\in B\ \Delta(x|B) \geq \Delta(x|A).
+		\Delta(x|B) \geq \Delta(x|A).
 	\end{equation} 
 \end{defn}
 
 We proved that Definition \ref{def:submod1} implies Definition \ref{def:dimret}. We now prove the opposite direction, to show that the two definitions are equivalent.
 
+\begin{claim}\label{marg_ret_impl_sm}
+	Definition \ref{def:dimret} implies Definition \ref{def:submod1}
+\end{claim}
+\begin{proof}
+Let $S, T \subseteq V$ be given. There are two cases, let's look at the simple one first. Assume $S \subseteq T$, then $S \cup T = T$ and $S\cap T = S$.
+
+[MISSING]
+
+So assume $S \not\subseteq T$ and $T \not\subseteq S$. This means that $S - T =\{s_1,\ldots, s_k\}$ is not empty.
+\begin{lem}
+\begin{equation}
+\forall 1 \leq i \leq k\ f((S \cap T) \cup \{s_1,\ldots, s_i\}) - f(S\cap T) \geq f(T \cup \{s_1,\ldots, s_i\}) - f(T)
+\end{equation}
+\end{lem}
+\begin{proof}
+If $i=1$ then we get the marginal returns property. The following inequality shows the base step of the induction.
+\begin{equation}
+f((S \cap T) \cup \{s_1\}) - f(S\cap T) \geq f(T \cup \{s_1\}) -f(T)
+\end{equation}
+This lemma is all about applying marginal returns property to longer and longer stripes of elements.
+
+What we want to do in the next step is adding $s_2$. So we have
+
+\begin{equation}
+f((S \cap T) \cup \{s_1, s_2\}) - f((S\cap T) \cup \{s_1\} ) \geq f(T \cup \{s_1,\ldots, s_2\}) -f(T \cup \{s_1\})
+\end{equation}
+
+This is true by the marginal returns property. In fact, all this inequalities will be true up until
+
+\begin{multline}
+f((S \cap T) \cup \{s_1, \ldots, s_{i+1}\}) - f((S\cap T) \cup\{s_1, \ldots, s_i\} ) \geq \\ f(T \cup \{s_1, \ldots, s_{i+1}\}) -f(T \cup \{s_1,\ldots, s_i\})
+\end{multline}
+
+We are assuming that these inequalities hold by induction. Now we want to add up them, and we see that the terms cancel out. We are left with
+
+\begin{equation}
+f((S \cap T) \cup \{s_1, \ldots, s_{i+1}\}) - f(S\cap T) \geq  f(T \cup \{s_1, \ldots, s_{i+1}\}) -f(T)
+\end{equation}
+
+And so the claim is true.
+\end{proof}
+
+Now observe what happens at the last step.
+\begin{align*}
+&f((S \cap T) \cup \{s_1, \ldots, s_k\}) - f(S\cap T) \geq f(T \cup \{s_1,\ldots, s_k\}) -f(T)\\
+&f((S \cap T) \cup (S - T)) - f(S\cap T) \geq  f(T \cup (S - T)) -f(T)\\
+&f(S) - f(S\cap T) \geq  f(T \cup S) -f(T)\\
+&f(S) + f(T) \geq f(S \cap T) + f(S \cup T)\\
+\end{align*}
+And we have proved the equivalence between the two definitions.
+\end{proof}
+\begin{claim}\label{cl:sumsub}
+	If $f$ and $g$ are submodular, then $f+g$ is submodular.
+\end{claim}
+\begin{proof}
+$\forall S, T \subseteq V$
+\begin{equation*}
+f(S) + f(T) \geq f(S \cup T) + f(S \cap T)
+\end{equation*}
+and
+\begin{equation*}
+g(S) + g(T) \geq g(S \cup T) + g(S \cap T)
+\end{equation*}
+
+Define $h(S) = f(S) + g(S)$ and then sum the inequalities. The result is still submodular (the inequality holds).
+\end{proof}
+
+If $f$ is submodular, $-f$ is submodular? Only when the property holds at equality (hence, we don't switch sign).
+
+\begin{claim}
+	If $f$ is submodular, $\alpha f$ is submodular, $\forall \alpha \geq 0$.
+\end{claim}
+
+\begin{claim}
+	If $f$ is submodular and $g$ is modular then $f - \alpha g$ is submodular.
+\end{claim}
+\begin{proof}
+	$g$ is modular, so multiplying it for a negative number results in a modular function, which is also submodular. Finally, the sum of two submodular function is submodular.
+\end{proof}
+
+\section{Facility location}
+Now we are going to give an example of submodular function optimization problem. Let $\mathcal{F} = \{F_1, \ldots, F_n\}$ be a set of facilities and $\mathcal{U} = \{U_1,\ldots, U_m\}$ a set of users. Maybe $\mathcal{F}$ is the set of universities in Rome and $\mathcal{U}$ the set of (wannabe) students in Rome. Student $U_i$ gets a gain $M_{ij} \geq 0$ for starting a program at University $F_j$. So what a student would do? He would go to the facility that gives the maximum gain. If thats the protocol, it is all very easy. But suppose you are the government and you can't open all the $n$ universities, but only $k$ of them. We have to select $S = \{i_1,\ldots, i_k : U_{i_k} \in \mathcal{U}\}$ facilities so to maximize $\sum_{i = 1}^m \max_{j \in S} M_{ij}$.
+
+What is the function we are going to prove to be submodular?
+
+\begin{equation}
+f(S) = \sum_{i=1}^m\max_{j \in S}M_{ij}
+\end{equation}
+
+The function is pretty intricate, but we are going to use the properties we just saw to prove it being submodular. Thanks to Claim \ref{cl:sumsub}, we can focus only on proving 
+\begin{equation}
+	f_i(S) = \max_{j \in S}M_{ij}
+\end{equation}
+to be submodular.
+
+\begin{claim}
+ $\forall S, T \subseteq \mathcal{F}$
+\begin{equation}\label{inq:fli}
+f_i(S) + f_i(T) \geq f_i(S \cup T) + f_i(S \cap T).
+\end{equation}	
+\end{claim}
+\begin{proof}
+	Let's concentrate on $f_i(S \cup T)$. Observe that, $f_i(S \cup T)$ is going to be larger or at least as large as the other $f_i$s in the inequality \ref{inq:fli}  because $f_i$ is just a max over the elements of the set. Suppose the maximum value of $f_i(S \cup T)$ is realized by some $j^\star$. This element can be in $S$, $T$, or both.
+	\begin{equation}
+	j^\star\in S \implies f_i(S) = f_i(S \cup T)
+	\end{equation}
+\begin{equation}j^\star\in T \implies f_i(T) = f_i(S \cup T)\end{equation}
+
+We are trying to prove that the left hand side is no larger than the left hand side. We have seen that $f_i(S \cup T)$ is the biggest part in the right hand side, and we have shown that, no matter what, there will be one element in the LHS that has the same value. Now we have to show that the other part of the RHS is not larger than the other element in the LHS.
+
+Suppose $k^\star$ achieves the maximum at $f_i(S \cap T)$. What do we know? $k^\star$ is going to be in both $S$ and $T$. So the max at $S$ is going to be at least as large as the max obtained with $k^\star$. It follows that
+\begin{equation}
+ f_i(S) \geq f_i(S \cap T)
+\end{equation}
+
+and
+
+\begin{equation}
+f_i(T) \geq f_i(S \cap T)
+\end{equation}
+
+so
+
+\begin{equation}
+\min(f_i(T), f_i(S)) \geq f_i(S \cap T).
+\end{equation}
+\end{proof}
+
+At this point we can state that \textsc{k-max-cover} is \textsc{facility location} with $M_{ij} \in \{0, 1\}$. Think of users as elements $E_1,\ldots, E_m$ and facilities as sets $S_1,\ldots, S_n$.
+
+\begin{equation}
+	M_{ij} = \begin{cases}
+	1 \textit{ if } E_i \in S_j\\
+	0 \textit{ otherwise.}
+	\end{cases}
+\end{equation}
+
+Here, $f_i(S)$ is going to be the maximum across all the sets in the solution $S$ and is going to be $1$ if at least one set in $S$ contains element $i$; zero otherwise. Finally, we are summing up over all the elements we picked.
+
+\section{Approximation of submodular functions}
+We are going to see an algorithm that returns a $\left(1-\frac{1}{e}\right)$ approximation of the optimal solution for a submodular function under a cardinality constraint. It is going to be similar to the one seen for k-max cover.
+
+\begin{algorithm}
+	\textbf{Input}: $f, k$\\
+	$S_0 \gets \emptyset$\;
+	\For{$j = 1, \ldots, k$}{
+	Let $v_i \in ([n] - S_{i-1})$ be the element maximizing $\Delta(v_i | S_{i-1})$\;
+	$S_i \gets S_{i-1} \cup \{v_i\}$\;
+	}
+	\Return{$S_k$}\;
+	
+	\caption{Greedy algorithm to approximate submodular functions.}
+	\label{algo:greedysubm}
+\end{algorithm}
+
+Authors in \cite{nemhauser01} proved the following theorem.
+\begin{thm}
+	If $f$ is submodular, non-negative and monotone then Algorithm \ref{algo:greedysubm}  returns a $\left(1-\frac{1}{e}\right)$ approximation of $\max_{S \in \binom{[n]}{k}} f(S)$.
+\end{thm}
+
+\begin{proof}
+	Let $S^\star = \{v_1^\star, \ldots, v_k^\star\} \in \binom{[n]}{k}$ be the optimal solution.
+
+\begin{lem}\label{lem:smnewstepgain}
+	\begin{equation}
+		\forall i \leq k-1\ f(S^\star) \leq f(S_i) + k\overbrace{(f(S_{i+1}) -f(S_i))}^{\text{new step gain}}
+	\end{equation}
+\end{lem}
+	\begin{proof}
+	We look at the gain obtained by adding a new element at step $i$. In the following lines we are \emph{telescoping} the first line to get intermediate steps.
+	\begin{align*}
+	f(S^\star) &\leq f(S^\star \cup S_i) \tag{monotonicity}\\
+	&= f(S^\star \cup S_i) - f(\{v_1^\star, \ldots, v_{k-1}^\star\} \cup S_i)\\
+	& + f(\{v_1^\star, \ldots, v_{k-1}^\star\} \cup S_i) - f(\{v_1^\star, \ldots, v_{k-2}^\star\} \cup S_i) \\
+	&+ f(\{v_1^\star, \ldots, v_{k-2}^\star\} \cup S_i) - \ldots \\
+	&\ldots\\
+	& + f(\{v_1^\star, v_{2}^\star\} \cup S_i) - f(\{v_1^\star\} \cup S_i)\\
+	& + f(\{v_1^\star\} \cup S_i) -  f(S_i) + f(S_i)
+	\end{align*}
+
+On each row we can see a diminishing return:
+\begin{align*}
+&\Delta(v_k^\star| S_i \cup \{v_1^\star, \ldots, v_{k-1}^\star\})\\
+&+\Delta(v_{k-1}^\star| S_i \cup \{v_1^\star, \ldots, v_{k-2}^\star\})\\
+&+\ldots\\
+&+\Delta(v_2^\star| S_i \cup \{v_1^\star\})\\
+&+\Delta(v_1^\star| S_i)\\
+&+f(S_i)
+\end{align*}
+
+So we have
+
+\begin{align*}
+f(S^\star) &\leq f(S^\star \cup S_i) \tag{monotonicity}\\
+&= f(S_i) + \sum_{j=1}^{k}\Delta(v_j^\star|S_i \cup \{v_1^\star,\ldots, v_{j-1}^\star\})\\
+&\leq f(S_i) + \sum_{j=1}^{k}\Delta(v_j^\star|S_i) \tag{diminishing returns}\\
+&\leq f(S_i) + \sum_{j=1}^{k}\Delta(v_{i+1}|S_i) \tag{greedy choice}\\
+&= f(S_i) + k\Delta(v_{i+1}|S_i)\\
+&= f(S_i) + k(f(S_{i+1}) - f(S_i))
+\end{align*}
+\end{proof}
+
+Define $\delta_i = f(S^\star) - f(S_i)$ and also, for simplicity, $\delta_{i+1} = f(S^\star) - f(S_{i+1})$. 
+Remember that we want to claim we don't lose so much in going from one step to the next. By looking at $f(S_{i+1}) - f(S_i)$ we can't say much since we don't know the function $f$. However, let's look at the difference between $\delta_i$ and $\delta_{i+1}$; essentially we used the diminishing return property to forget about the function. Now we can just think about the costs with respect to the optimum that we pay at each step.
+
+
+\begin{align}
+	\delta_i &= f(S^\star) - f(S_i)\\
+	&\leq k(f(S_{i+1}) - f(S_i)) \tag{by Lemma \ref{lem:smnewstepgain}}\\
+	&= k(\delta_i - \delta_{i+1})
+\end{align}
+
+Now  we want to show that the cost goes down.
+\begin{equation}
+k\delta_{i+1} \leq (k-1)\delta_i \implies \delta_{i+1} \leq \left(1-\frac{1}{k}\right)\delta_i
+\end{equation}
+
+So
+
+\begin{align}
+\delta_0 &= f(S^\star) - f(S_0) \leq f(S^\star) \tag{f non-negative}\\
+\delta_1 &\leq \left(1 - \frac{1}{k}\right) \delta_0 = \left(1-\frac{1}{k}\right)f(S^\star)\\
+\ldots\\
+\delta_k &\leq \left(1-\frac{1}{k}\right)\delta_{k-1} \leq ,\ldots, \leq \left(1-\frac{1}{k}\right)^k\delta_0 \\
+&=\left(1-\frac{1}{k}\right)^kf(S^\star) \leq \frac{1}{e}f(S^\star).
+\end{align}
+\end{proof}
+
+This can be though as an example of how one can start by solving a specific problem, creating a solution, and then think of it as a general solution. One can asks what the created algorithm, or the analysis for proving it works, can tell me about a more general problem.
+
+Do we need the properties we assumed, i.e. submodularity, non-negativity and monotonicity? 
+
+So, non-negativity is not that important. For one thing, if the function can be negative, what does it mean to optimize it and to give a constant approximation? Maybe the optimal is negative, in which case, say, a $\left(1-\frac{1}{e}\right)$ approximation would be impossible. In the context of maximization, multiplying the optimal (which we assume negative) for a constant $0 < x < 1$ gives a greater value than the optimal (contradiction). Thus, multiplying by a constant can change whether you are maximizing or minimizing. For what we have just said, non-negativity is necessary. On the other hand, you could remove that assumption keeping, in this particular case, a bound with $f(S^\star) - f(S_0)$. It won't yield a constant approximation, because it doesn't make sense with negative functions, but you would get something that depends on this gap. Essentially, non-negativity is used to get a nice, clean theorem.
+
+What about monotonicity? That actually helps. If it removed, then what we can get is a $\frac{1}{2}$ approximation, under some computational assumptions, but not a $\left(1-\frac{1}{e}\right)$ approximation. It would require a different way of reasoning about the problem and a much more complicated algorithm. So removing it means getting a worst approximation. Finally, we don't want to remove submodularity, we started from there.
+
+Other questions are about constraints. Why do we care about optimizing the value of the function at sets of cardinality $k$? One could say ``I care about other sets''. If the function is monotone and we want to maximize it without any constraint on the set, what should I do? Return the full set. Monotonicity is actually very important if the optimization problem comes with some constraint. As example, what if we do not want exactly $k$ elements but at most $k$ elements. In this case not having monotonicity is an important issue (maybe the empty set is the one that has more value).
+
+\section{Learning a submodular function}
+
+Algorithm \ref{algo:greedysubm} is able to approximate the value of the function by looking at $O(kn)$ values instead of $\Theta(2^n)$. It performs a number of steps that is logarithmic in the size of the input. In cases when there is no need to look at all the input, the algorithm is said to be sublinear.
+
+We saw that linear (modular) functions can be understood by only looking at singleton sets (plus the empty set), that is, $n + 1$ values. It is natural to think that we can't do the same for submodular functions, and what follows is the idea to prove it.
+
+What is a construction that can actually prove that, while there is an algorithm that efficiently optimize the function, there is no algorithm that can learn the function efficiently? As usual we want to use easy building blocks, and then mix up them according to the claims we saw earlier (summing them up, essentially). 
+
+For $T \subseteq [n]$, define the function
+
+\begin{equation}
+f_T(S)=\begin{cases}
+	0 \textit{ if } S\subseteq T,\\
+	1 \textit{ otherwise}.
+\end{cases}
+\end{equation}
+
+The function $f_T$ is a building block that we want to use to build the final submodular function $F$. Consider 
+\[\mathcal{S} \subseteq U = \binom{[n]}{\frac{n}{2}} = \left\{ Q : Q\subseteq [n] \wedge |Q| = \frac{n}{2}\right\}\]
+
+$F$ will depend on $\mathcal{S}$, but the fact we don't know actually what $\mathcal{S}$ is will lead us to the result we want to prove. So, let's define
+
+\begin{equation}
+	F_{\mathcal{S}}(A) = \sum_{T \in \mathcal{S}}f_T(A).
+\end{equation}
+
+There are exponentially many functions $f_T$, which are all the possible building blocks. We are looking for a subset of them, and one subset is be picked without it being disclosed; now, the value of the submodular function $F$ is the sum of the values of the functions at a particular set.
+
+\begin{claim}
+	$f_T$ is submodular.
+\end{claim}
+
+\begin{proof}
+	Let's pick two sets $A, B \subseteq [n]$, and apply the definition of submodularity.
+	\begin{equation}
+	f_T(A) + f_T(B) \geq f_T(A \cup B) + f_T(A \cap B).
+	\end{equation}
+	
+	There are four cases to be considered.
+	
+	\begin{enumerate}
+	\item $A, B \subseteq T$. Then we have $0 + 0 \geq 0 + 0$, which holds.
+	\item $A \subseteq T$ and $B \not\subseteq T$ (and the specular case). Computing the function values we have that $0 + 1 \geq 0 + 1$.
+	\item $A, B \not\subseteq T$. In this case we have $1 + 1 \geq 0 + x$. We can't tell exactly the value $x$ of the function computed at intersection, but it can be at most $1$, so the inequality holds.
+	\end{enumerate} 
+\end{proof}
+
+Since the sum of submodular functions is submodular, $F_\mathcal{S}(A)$ is submodular. We want to prove that knowing $F$ requires a lot of queries. Doing it formally would require many definitions, but it is a pretty easy algorithm. Your algorithm's call is to learn $F$ by querying it. The answer it gets at each query is  some integer representing the number of functions $f_T$ that evaluates to 1 at set A. 
+
+How big and how small that number can be? The function $F$ is nonnegative, so the minimum is $0$ and the maximum is the cardinality of $S$, which can be as large as $2^n$. $F_S(A)$ is an integer from $0$ to $2^n$, and thus requires $n$ bits for each query. We will show the that the number of bits needed to represent $F$ is much larger, exponential. Why is it the case? How big is the set of sets $U$? 
+\begin{equation} \left|U\right| = \binom{n}{\frac{n}{2}} = \Theta\left(\frac{2^n}{\sqrt{n}}\right).\end{equation}
+
+Since we are picking any subset $\mathcal{S}$ of this big set of sets, to be able to know which subset $\mathcal{S}$ is, we actually have to know for each set in $U$ whether i picked it or not. One bit is needed for each set, summing up to $|U|$ bits. At each query we get only $n$ bits, therefore at least  $\frac{|U|}{n}$  queries are needed (i.e., an exponential number).
+
+Why do we need to know exactly $S$? Well, if we don't know $S$, the value of $F$ can't be known. 
+
+This is why learning submodular functions is hard. But we can optimize them with efficient algorithms, doing leverage on certain properties as we saw.
