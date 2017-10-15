@@ -132,9 +132,8 @@ We proved that Definition \ref{def:submod1} implies Definition \ref{def:dimret}.
 	Definition \ref{def:dimret} implies Definition \ref{def:submod1}
 \end{claim}
 \begin{proof}
-Let $S, T \subseteq V$ be given. There are two cases, let's look at the simple one first. Assume $S \subseteq T$, then $S \cup T = T$ and $S\cap T = S$.
+Let $S, T \subseteq V$ be given. There are two cases, let's look at the simple one first. Assume $S \subseteq T$, then $S \cup T = T$ and $S\cap T = S$. The same conditions of Definition \ref{def:submod1} are present, so we can just go backwards on the steps we performed to get to Definition \ref{def:dimret}.
 
-[MISSING]
 
 So assume $S \not\subseteq T$ and $T \not\subseteq S$. This means that $S - T =\{s_1,\ldots, s_k\}$ is not empty.
 \begin{lem}
@@ -356,7 +355,7 @@ So
 \end{align}
 \end{proof}
 
-This can be though as an example of how one can start by solving a specific problem, creating a solution, and then think of it as a general solution. One can asks what the created algorithm, or the analysis for proving it works, can tell me about a more general problem.
+This can be though as an example of how one can start by solving a specific problem, creating a solution, and then think of it as a general solution. One can asks what the created algorithm, or the analysis for proving it works, can say about a more general problem.
 
 Do we need the properties we assumed, i.e. submodularity, non-negativity and monotonicity? 
 
