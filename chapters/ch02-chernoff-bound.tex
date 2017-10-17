@@ -68,7 +68,7 @@ At this point, we need to find $\delta'$ such that $\delta' \approx \delta$. One
 	\delta' = \frac{|E|}{|T_\delta|}.
 \end{equation}
 
-The problem here are the leaves of $T_\delta$. If they hadn't exposed themselves, we wouldn't know about them (or other nodes). From the point of view of $T_\delta$, they are \emph{not} exposed independently with probability $\delta'$; rather, they are exposed with probability $1$. To compute $\delta'$ then, we excludes $T_\delta$'s leaves. What follows is an algorithm that outputs $\delta'$.
+The problem here are the leaves of $T_\delta$. If they hadn't exposed themselves, we wouldn't know about them (or other nodes). From the point of view of $T_\delta$, they are \emph{not} exposed independently with probability $\delta'$; rather, they are exposed with probability $1$. To compute $\delta'$ then, we exclude $T_\delta$'s leaves. What follows is an algorithm that outputs $\delta'$.
 
 \begin{algorithm}
 \textbf{Input:} $E, L, V$.\\

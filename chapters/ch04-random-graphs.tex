@@ -1,0 +1,158 @@
+\chapter{Random Graph Models}
+
+We are going to start random graph models that would represent properties of social networks. The one model we are going to look at is the preferential attachment model, a very famous one. It was introduced so to explain one strange behavior of
+social network distributions.
+
+\section{Preferential Attachment Model}
+
+It has been observed that the degree distribution in big social graphs, like the one of Facebook or Twitter, it is a really close to a \emph{power law} distribution.
+
+\begin{defn}
+	A probability distribution P follows a power law if
+	\begin{equation}
+		P(x) = x^{-\alpha}, \alpha > 1.
+	\end{equation}
+\end{defn}
+
+In the social network context it means that it is exponentially more likely to pick ``normal people'' with few friends or followers rather than popular profiles, called ``celebrities'' or ``authorities''.
+
+It turns out that the Preferential Attachment Model is able to capture this Social Networks' aspect, whereas others random models like $G(n,p)$ (the one proposed by Edgar Gilbert) do not show this regularity. In $G(n,p)$, for example, we expect each node to have the degree very close to the mean, because of the Chernoff Bound.
+
+Nodes with high degree in a social network are few, but they exists. So, as an example, an advertisement agency could pay those celebrities to publicize a product, enabling a spread of information due to the high number of connections those nodes have.
+
+\begin{equation}
+	X_i^{(t)} = \textit{``Number of nodes with degree $i$ in $G_i$''}.
+\end{equation}
+
+The following properties are always true:
+\begin{equation}
+	X_2^{(1)} = 1,\ X_i^{{1}} = 0\ \forall i\ i \neq 2.
+\end{equation}
+
+\begin{equation}
+	|E(G_t)| = t,\ |V(G_t)| = t
+\end{equation}
+
+Furthermore. the sum of all degrees in the graph is twice the number of edges.
+
+Can we compute the expected number of nodes with degree $1$? That number depends on the past, which we can represent as $\overline{X^{(t-1)}}$, the vector representing the degree distribution at $t-1$ time step.
+
+Define
+\begin{equation}
+	\xi_1 = \textit{``The new node chooses a degree $1$ neighbor''}.
+\end{equation}
+
+Then
+
+\begin{align}
+	E[X_1^{(t)} | \overline{X_1^{(t-1)}}] &= (X_1^{(t-1)} + 1)(1-\pr{\xi_1}) + X_1^{(t-1)}\pr{\xi_1}\\
+	&=(X_1^{(t-1)} + 1)\left(1-\frac{X_1^{(t-1)}}{2(t-1)}\right) + X_1^{(t-1)}\frac{X_1^{(t-1)}}{2(t-1)}\\
+	&=X_1^{(t-1)} -\frac{(X_1^{(t-1)})^2}{2(t-1)} + 1 - \frac{X_1^{(t-1)}}{2(t-1)} +\frac{(X_1^{(t-1)})^2}{2(t-1)}\\
+	&= \left(1 - \frac{1}{2(t-1)}\right)X_1^{(t-1)} + 1.
+\end{align}
+
+So now
+
+\begin{align*}
+E[X_1^{(t)}] &= \sum_{c \geq 0}\pr{X_1^{(t-1)} = c}E[X_1^{(t)}|X_1^{(t-1)}=c]\\
+&=\sum_{c \geq 0}\pr{X_1^{(t-1)}=c}\left(\left(1-\frac{1}{2(t-1)}\right)c + 1\right)\\
+&=\sum_{c \geq 0}\pr{X_1^{(t-1)}=c}\left(1-\frac{1}{2(t-1)}\right)c +\sum_{c \geq 0}\pr{X_1^{(t-1)}=c}\\
+&=\left(1 - \frac{1}{2(t-1)}\right)\sum_{c \geq 0}\pr{X_1^{(t-1)} = c}c + 1\\
+&=\left(1 - \frac{1}{2(t-1)}\right)E[X_1^{(t-1)}] + 1.
+\end{align*}
+
+\begin{lem}\label{pa_lem1}
+	\begin{equation}
+		E[X_1^{(t)}] = \left(1 - \frac{1}{2(t-1)}\right)E[X_1^{(t-1)}] + 1.
+	\end{equation}
+\end{lem}
+
+We want to derive a similar lemma for $i > 1$.
+
+\begin{align*}
+E[X_i^{(t)} | \overline{X^{(t-1)}}] &= X_i^{(t-1)} + \pr{X_i^{(t)} -X_i^{(t-1)} = 1} - \pr{X_i^{(t)} -X_i^{(t-1)} = -1}\\
+&= X_i^{(t-1)} + \frac{i-1}{2(t-1)}X_{i-1}^{(t-1)} -\frac{i}{2(t-1)}X_i^{(t-1)}\\
+&=\left(1 -\frac{i}{2(t-1)}\right)X_i^{(t-1)} + \frac{i-1}{2(t-1)}X_{i-1}^{(t-1)}\\
+&=E[X_i^{(t)} | X_i^{(t-1)}, X_{i-1}^{(t-1)}].
+\end{align*}
+
+So
+
+\begin{align*}
+E[X_i^{(t)}] &= \sum_{c,d \geq 0}\pr{X_i^{(t-1)} = c \wedge X_{i-1}^{(t-1)} = d}E[X_i^{(t)} | X_i^{(t-1)} = c,  X_{i-1}^{(t-1)} = d]\\
+&= \sum_{c,d \geq 0}\pr{X_i^{(t-1)} = c \wedge X_{i-1}^{(t-1)} = d}\left(\left(1-\frac{i}{2(t-1)}\right)c + \frac{i -1}{2(t-1)}d\right)\\
+& = \sum_{c \geq 0}\pr{X_i^{(t-1)} = c}\left(1-\frac{i}{2(t-1)}\right)c + \sum_{d \geq 0}\pr{X_{i-1}^{(t-1)} = d}\frac{i -1}{2(t-1)}d\\
+&=\left(1-\frac{i}{2(t-1)}\right)E[X_i^{(t-1)}] +\frac{i -1}{2(t-1)}E[X_{i-1}^{(t-1)}] .
+\end{align*}
+
+\begin{lem}\label{pa_lem2}
+	\begin{equation}
+	\forall i\ i \geq 2,\ E[X_i^{(t)}] = \left(1-\frac{i}{2(t-1)}\right)E[X_i^{(t-1)}] +\frac{i -1}{2(t-1)}E[X_{i-1}^{(t-1)}].
+	\end{equation}
+\end{lem}
+
+To solve this is difficult, so we give the theorem and prove that it is correct, without deriving it.
+
+\begin{thm}\label{pa_thm}
+	Let $E_i = \frac{4}{i(i+1)(i+2)}$. 
+	\begin{equation}\label{pa_eq}
+		E_it - 1 \leq E[X_i^{(t)}] \leq E_it + 1
+	\end{equation}
+\end{thm}
+
+Prove this by double induction.
+
+First induction on $t$. Assume $i = 1$
+
+If $t = 1$ then
+\begin{equation}
+	E[X_1^{(1)}] = 0
+\end{equation}
+\begin{equation}
+	\frac{2}{3} - 1 \leq E[X_1^{(1)}] \leq \frac{2}{3} + 1.
+\end{equation}
+
+Now we assume Equation \ref{pa_eq} is true up until $t-1$. We prove the upper bound first.
+
+\begin{align}
+E[X_1^{(t)}] &= \left(1 - \frac{1}{2(t-1)}\right)E[X_1^{(t-1)}]\\
+&\leq \left(1 - \frac{1}{2(t-1)}\right)\left(\frac{4}{6}(t-1) + 1\right) + 1\tag{By inductive hypotesis}\\
+&=\frac{2(t-1)}{3} -\frac{2(t-1)}{6(t-1)} - \frac{1}{2(t-1)} + 1\\
+&=\frac{2(t-1)}{3} + \left(1 - \frac{1}{3}\right) + \left(1 - \frac{1}{2(t-1)}\right)\\
+&=\frac{2}{3}t + \left(1 -\frac{1}{2(t-1)}\right) \leq \frac{2}{3}t + 1.
+\end{align}
+
+Now the lower bound.
+
+
+\begin{align}
+E[X_1^{(t)}] &= \left(1 - \frac{1}{2(t-1)}\right)E[X_1^{(t-1)}]\\
+&\geq \left(1 - \frac{1}{2(t-1)}\right)\left(\frac{4}{6}(t-1) - 1\right) + 1\tag{By inductive hypotesis} \\
+&=\frac{2(t-1)}{3} -\frac{2(t-1)}{6(t-1)} + \frac{1}{2(t-1)} + 1\\
+&=\frac{2}{3}t - \frac{2}{3} -\frac{1}{3} + \frac{1}{2(t-1)} + 1\\
+&=\frac{2}{3}t + \frac{1}{2(t-1)} \geq \frac{2}{3}t - 1.
+\end{align}
+
+Now we have proved for the base case $i = 1$. Assume Equation \ref{pa_eq} is true up until $i-1$. Let's now prove the upper bound.
+
+\begin{align}
+E[X_i^{(t)}] &= \left(1-\frac{i}{2(t-1)}\right)E[X_i^{(t-1)}] +\frac{i -1}{2(t-1)}E[X_{i-1}^{(t-1)}]\\
+&\leq \left(1-\frac{i}{2(t-1)}\right)(E_i(t-1)+1) +\frac{i -1}{2(t-1)}(E_{i-1}(t-1)+1)\\
+&=\left(1-\frac{i}{2(t-1)}\right)\left(\frac{4(t-1)}{i(i+1)(i+2)}+1\right)\\
+&\indent+\frac{i -1}{2(t-1)}\left(\frac{4(t-1)}{(i-1)(i)(i+1)}+1\right)\\
+&=\frac{4(t-1)}{i(i+1)(i+2)} + 1 -\frac{2}{(i+1)(i+2)} -\frac{i}{2(t-1)} + \frac{2}{i(i+1)} + \frac{i-1}{2(t-1)}\\
+&=\frac{4(t-1)}{i(i+1)(i+2)} + 1 +\frac{4}{i(i+1)(i+2)} -\frac{1}{2(t-1)}\\
+&=\frac{4t}{i(i+1)(i+2)} + 1 -\frac{1}{2(t-1)} \leq E_it+1.
+\end{align}
+
+The lower bound now.
+
+\begin{align}
+E[X_i^{(t)}] &= \left(1-\frac{i}{2(t-1)}\right)E[X_i^{(t-1)}] +\frac{i -1}{2(t-1)}E[X_{i-1}^{(t-1)}]\\
+&\geq \left(1-\frac{i}{2(t-1)}\right)(E_i(t-1)-1) +\frac{i -1}{2(t-1)}(E_{i-1}(t-1)-1)\\
+&=\left(1-\frac{i}{2(t-1)}\right)\left(\frac{4(t-1)}{i(i+1)(i+2)}-1\right)\\
+&\indent+\frac{i -1}{2(t-1)}\left(\frac{4(t-1)}{(i-1)(i)(i+1)}-1\right)\\
+&=\frac{4(t-1)}{i(i+1)(i+2)} -1 -\frac{2}{(i+1)(i+2)} +\frac{i}{2(t-1)} + \frac{2}{i(i+1)} - \frac{i-1}{2(t-1)}\\
+&=\frac{4(t-1)}{i(i+1)(i+2)} -1 +\frac{4}{i(i+1)(i+2)} +\frac{1}{2(t-1)}\\
+&=\frac{4t}{i(i+1)(i+2)} -1 +\frac{1}{2(t-1)} \geq E_it-1.
+\end{align}
