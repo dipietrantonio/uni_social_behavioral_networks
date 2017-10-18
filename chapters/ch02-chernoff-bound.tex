@@ -2,7 +2,34 @@
 
 In this Chapter we see a way to bound tail distributions, that is, the probability that a random variable assumes values that are far from its expectation.
 
-We state (without proof) the Chernoff Bound, which is a powerful tool to bound tail distribution exponentially decreasing values.
+\section{First-Edge Algorithm, revised}
+In the last chapter, we studied the First-Edge Algorithm for reconstructing the social graph given a set of traces. The way we proved the algorithm to be valid can be abstracted in the following way. For each trace $i$, and a given edge $\{u,v\} \in E(G)$, define
+\begin{equation}
+X_i = \begin{cases}
+1 & \{u, v\}\ \text{are not the first two nodes in trace } i\\
+0 & \text{otherwise}. 
+\end{cases}
+\end{equation}
+
+We considered only a given edge and we computed the probability that the nodes involved in it were never at the beginning of a trace. The reason we wanted to do that was that if $\{u, v\}$ were the first two nodes in a trace then the edge was indeed in the graph.
+
+What we were really asking for is the following:
+\begin{equation}
+	\pr{\prod_{i} X_i = 1}.
+\end{equation}
+ 
+ If all $X_i$s are one then no trace had $\{u,v\}$ as first nodes. Otherwise, the product is zero and the edge is in the graph. Essentially we studied the product of random variables.
+
+When there are a bunch of independent variables and one wants to compute, say, when one of them is different from the others, then the analysis is usually pretty simple. In most cases, though, is not so easy. Usually what is studied is the random variable $X$ defined as
+\begin{equation}
+	X=\sum_i X_i,
+\end{equation}
+that is, the sum of the $X_i$s as opposite to the product. In most cases, people study this random variable, defining if from a set of variables, which may be independent, and  with the aim to compute statistics like the expectation, the second moment, or the probability that the $X$ deviate from its expectation by more than a certain amount. If $X$ is always (or with high probability) close to its expectation we say the variable is \emph{concentrated}. This specific random variable is ubiquitous in algorithms and random processes. We will start looking at this type of variable and its use in modeling social network processes.
+
+
+\section{Chernoff bound}
+
+We state (without proof) the Chernoff Bound, which is a powerful tool to bound a tail distribution with exponentially decreasing values.
 \begin{thm}[Chernoff Bound]
 	Let $X_1, X_2, \ldots, X_n$, $0 \leq X_i \leq 1,\forall i$, be a set of mutually independent random variables, and $X = \sum_{i=1}^nX_i$. Then
 	\begin{equation}
@@ -21,7 +48,7 @@ Consider the following situation. We flip $n$ fair coins. Define
 then 
 \[X = \sum_{i=1}^n = \textit{ \# of heads}.\] 
 
-What is the probability of the event $\{X = k\}$. For $X$ to be $k$ there must be exactly $k$ coins which resulted in heads. We can choose among $\binom{n}{k}$ compatible events (set of variables), each having the same probability $2^{-n}$ to happen. It follows that
+What is the probability of the event $\{X = k\}$? For $X$ to be $k$ there must be exactly $k$ coins which resulted in heads. We can choose among $\binom{n}{k}$ compatible events (set of variables), each having the same probability $2^{-n}$ to happen. It follows that
 \begin{equation*}
 	\pr{X = k} = \binom{n}{k}2^{-n}.
 \end{equation*} 
@@ -35,10 +62,10 @@ What if the coin is not fair? We have the binomial distribution.
 We would like to know what is the probability that $X$ assumes a value far from the expected one. We can use the Chernoff Bound.
 
 \begin{equation}
-	\pr{X \leq (1-\varepsilon)np} \leq e^{-\frac{\varepsilon pn}{3}},
+	\pr{X \leq (1-\varepsilon)np} \leq e^{-\frac{\varepsilon^2pn}{3}},
 \end{equation}
 
-Suppose we choose $p = \frac{1}{2}$ and
+The quantity is going down exponentially with $n$. Why is this useful? $\epsilon$ can go down to $\frac{1}{\sqrt(n)}$ and we would still get something that is going down to $0$ very quickly. Suppose we choose $p = \frac{1}{2}$ and
 \begin{equation}
 	\varepsilon = \sqrt{\frac{\log n}{n}}
 \end{equation}
@@ -47,6 +74,11 @@ Then we have
 \[e^{-\frac{\frac{\log n}{n}\frac{1}{2}n}{3}} = e^{-\frac{1}{6}\log n} = \frac{1}{\sqrt[6]{n}}.\]
 
 That is, the probability of error can be made as tiny as we want by increasing $n$.
+
+The Chernoff bound is an extremely important tool that is used, as an example, in all applications that deal with large datasets. This is because it states that it is not necessary to look at all the values to get a sense about what the mean is. 
+
+Consider the following scenarion. There are a bunch of people that has to vote of one candidate or the other. A first attempt to predict the winner could be to ask to every person for his/her preference. Then we one would have all the necessary information, but it cannot be done in practice. A more realistic way of doing it is, because of the existence of the Chernoff bound, to pick random people. If there is some gap between the two candidates, maybe $51$ vs. $49$ or more, then after maybe few cases (maybe $2000$ people in this example) one would be able to tell the candidate that is more likely to win. The error may be proportional to $\sqrt{n}$ but, as long as the gap is linear in $n$, the prediction can be considered valid.
+
 
 \section{Chain letters}
 
