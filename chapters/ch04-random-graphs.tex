@@ -5,7 +5,7 @@ social network distributions.
 
 \section{Preferential Attachment Model}
 
-It has been observed that the degree distribution in big social graphs, like the one of Facebook or Twitter, it is a really close to a \emph{power law} distribution.
+It has been observed that the degree distribution in big social graphs, like the one of Facebook or Twitter, is really close to a \emph{power law} distribution.
 
 \begin{defn}
 	A probability distribution P follows a power law if
@@ -16,15 +16,31 @@ It has been observed that the degree distribution in big social graphs, like the
 
 In the social network context it means that it is exponentially more likely to pick ``normal people'' with few friends or followers rather than popular profiles, called ``celebrities'' or ``authorities''.
 
-It turns out that the Preferential Attachment Model is able to capture this Social Networks' aspect, whereas others random models like $G(n,p)$ (the one proposed by Edgar Gilbert) do not show this regularity. In $G(n,p)$, for example, we expect each node to have the degree very close to the mean, because of the Chernoff Bound.
+It turns out that the Preferential Attachment Model is able to capture this social networks' aspect, whereas others random models like $G(n,p)$ (the one proposed by Edgar Gilbert) do not show this regularity. In $G(n,p)$, for example, we expect each node to have the degree very close to the mean, because of the Chernoff Bound.
 
 Nodes with high degree in a social network are few, but they exists. So, as an example, an advertisement agency could pay those celebrities to publicize a product, enabling a spread of information due to the high number of connections those nodes have.
 
+If we plot a power law distribution on a \emph{loglog plot}, that is, a plot where on both axes are represent the log of coordinates of each point, we get a straight line that says how many nodes for each degree one can get, which is kind of unusual to observe in real world phenomena, thought to be more ``chaotic''. A first scientific question one can ask is how can it be that something so striking.
+
+We would rather expect that there exists some average degree from which values would deviate with a an exponential law, resulting in very small deviations from the mean; something similar to what the Chernoff bound states. And yet is not what happens here. In understanding why this the case, the Preferential Attachment Model is really important. It was rediscovered by many people. In physics, this model is usually attributed to Barabási and Albert, but also discovered in mathematical biology, and in math. It is called also called ``rich get richer'' model, and we will see why.
+
+First of all, it differs from $G(n,p)$ because it is evolutionary, not fixed. It is possible to stop at $n$ nodes if needed, but it is not required. There are many variants. In our discussion, the model starts with one node with a self loop. Then, at each time step $t$, a new node is added, which then is linked to an existing node in the graph. The new node will choose its neighbor in some random way. In the simplest model it chooses one neighbor, but it can be generalized to $k$ neighbors (this is not considered here).The neighbor is selected with a \emph{rich get richer} policy. This means that a node is chosen with a probability proportional to its degree. Richer nodes, the ones with high degree, have a greater probability to been chosen as neighbor of a new node.
+
+Formally, given the graph $G_{t-1}$, the probability of a node $v \in V(G_{t-1})$ to be chosen at time $t$ to be the neighbor of the new node is
 \begin{equation}
-	X_i^{(t)} = \textit{``Number of nodes with degree $i$ in $G_i$''}.
+P(v) = \frac{\deg{v}}{\sum_{v' \in V(G_{t-1})} \deg{v'}}
 \end{equation}
 
-The following properties are always true:
+It follows that the probability distribution may change every time a new node is added. It is evolutionary, and we can't make and independent choice for each edge. When we are in such a situation, studying the graph is hard, in fact there are many things we don't know about this model. But it is possible to study the degree distribution and to show  that it is actually a power law distribution.
+
+At fist glance, assuming a graph with $n$ nodes, it seems that to add the $(n+1)$-th node one has to look at the full graph. This means that, if $n = 1000$, then we have to look at $1000$ nodes to decide where to put the edge. The first observation is, if we only care about the degree distribution, we can reduce the knowledge about the graph that we care about; in particular, if we know the vector of degree counts at time $t-1$ then it is possible compute the new vector of degrees at time $t$. This is the main trick we will be using.
+
+Let's define some notation. Let
+\begin{equation}
+	X_i^{(t)} = \textit{``Number of nodes with degree $i$ in $G_t$''}.
+\end{equation}
+
+The following properties are always true (we start with one node with a self loop):
 \begin{equation}
 	X_2^{(1)} = 1,\ X_i^{{1}} = 0\ \forall i\ i \neq 2.
 \end{equation}
@@ -35,23 +51,23 @@ The following properties are always true:
 
 Furthermore. the sum of all degrees in the graph is twice the number of edges.
 
-Can we compute the expected number of nodes with degree $1$? That number depends on the past, which we can represent as $\overline{X^{(t-1)}}$, the vector representing the degree distribution at $t-1$ time step.
+Can we compute the expected number of nodes with degree, say, one? In the end, we want to be able to know the expected number of nodes of any degree, but now let's focus on the base case. That number depends on the past, since the process is evolutionary, which we can represent as the vector  $\overline{X^{(t-1)}}$ containing the degree distribution at $t-1$ time step. We first assume a given realization of the vector $\overline{X^{(t-1)}}$.
 
 Define
 \begin{equation}
 	\xi_1 = \textit{``The new node chooses a degree $1$ neighbor''}.
 \end{equation}
 
-Then
+Then, when adding a new node, either $\xi_1$ or its complementary will happen. In the first case, the number of nodes stays the same, since we add and remove one; in the second case, we increase the count by one.
 
-\begin{align}
+\begin{align*}
 	E[X_1^{(t)} | \overline{X_1^{(t-1)}}] &= (X_1^{(t-1)} + 1)(1-\pr{\xi_1}) + X_1^{(t-1)}\pr{\xi_1}\\
 	&=(X_1^{(t-1)} + 1)\left(1-\frac{X_1^{(t-1)}}{2(t-1)}\right) + X_1^{(t-1)}\frac{X_1^{(t-1)}}{2(t-1)}\\
 	&=X_1^{(t-1)} -\frac{(X_1^{(t-1)})^2}{2(t-1)} + 1 - \frac{X_1^{(t-1)}}{2(t-1)} +\frac{(X_1^{(t-1)})^2}{2(t-1)}\\
 	&= \left(1 - \frac{1}{2(t-1)}\right)X_1^{(t-1)} + 1.
-\end{align}
+\end{align*}
 
-So now
+So now, by the law of total probability,
 
 \begin{align*}
 E[X_1^{(t)}] &= \sum_{c \geq 0}\pr{X_1^{(t-1)} = c}E[X_1^{(t)}|X_1^{(t-1)}=c]\\
@@ -67,7 +83,9 @@ E[X_1^{(t)}] &= \sum_{c \geq 0}\pr{X_1^{(t-1)} = c}E[X_1^{(t)}|X_1^{(t-1)}=c]\\
 	\end{equation}
 \end{lem}
 
-We want to derive a similar lemma for $i > 1$.
+What we get is a recursive formula to compute the expected number of nodes with degree one. The ``plus one'' is the new node we add, and the others nodes with degree one will almost be preserved except for the $\frac{1}{2(t-1)}$ fraction we might end up losing because of a one degree node removal (by attaching the new edge to it).
+
+How can we hope to do the same thing for degrees larger than one? In this case, the difference is that the new node won't have degree $i$, so what could happen? The number of nodes having degree $i$ might not be affected, or can increase or decrease by one. If, for example, we cared about nodes with degree three, and the new one attaches to one of such nodes, then the count decreases. If the new node attaches to a previously degree two node, then the count increases. Formally,
 
 \begin{align*}
 E[X_i^{(t)} | \overline{X^{(t-1)}}] &= X_i^{(t-1)} + \pr{X_i^{(t)} -X_i^{(t-1)} = 1} - \pr{X_i^{(t)} -X_i^{(t-1)} = -1}\\
@@ -76,7 +94,7 @@ E[X_i^{(t)} | \overline{X^{(t-1)}}] &= X_i^{(t-1)} + \pr{X_i^{(t)} -X_i^{(t-1)} 
 &=E[X_i^{(t)} | X_i^{(t-1)}, X_{i-1}^{(t-1)}].
 \end{align*}
 
-So
+It follows that
 
 \begin{align*}
 E[X_i^{(t)}] &= \sum_{c,d \geq 0}\pr{X_i^{(t-1)} = c \wedge X_{i-1}^{(t-1)} = d}E[X_i^{(t)} | X_i^{(t-1)} = c,  X_{i-1}^{(t-1)} = d]\\
@@ -91,28 +109,38 @@ E[X_i^{(t)}] &= \sum_{c,d \geq 0}\pr{X_i^{(t-1)} = c \wedge X_{i-1}^{(t-1)} = d}
 	\end{equation}
 \end{lem}
 
-To solve this is difficult, so we give the theorem and prove that it is correct, without deriving it.
+Our original goal was to prove that
+\begin{equation}
+E[X_i^{(t)}] \propto i^{-\alpha}t
+\end{equation}
+that is, a power law behavior. This is a very rough estimate but it is representative of what we would like to achieve; in other words, to bound the expectation with the number of steps we had so far. Currently we cannot achieve this because we can express the expectation at time $t$ only as a function of the expectation at the previous time step. 
+
+We need to solve recurrent linear systems (Lemma \ref{pa_lem1}, Lemma \ref{pa_lem2}). Lemma \ref{pa_lem1} is easy, since it has only one free variable; Lemma \ref{pa_lem2} is not as easy. It ia actually pretty much complicated, and exists general, hard, techniques to solve it. In such situations, the best thing to do is to guess the solution and check that it works. Still, if one wants to solve the recursion, you can evaluate the base case (Lemma \ref{pa_lem1}), and then plug the solution into the general case (Lemma \ref{pa_lem2}) iteratively.
+
+We will give a solution to bound $E[X_i^{(t)}]$ and check if it is correct.
 
 \begin{thm}\label{pa_thm}
-	Let $E_i = \frac{4}{i(i+1)(i+2)}$. 
+	Let $E_i = \frac{4}{i(i+1)(i+2)}$ be our guess on the expectation $E[X_i^{(t)}]$. 
 	\begin{equation}\label{pa_eq}
 		E_it - 1 \leq E[X_i^{(t)}] \leq E_it + 1
 	\end{equation}
 \end{thm}
 
-Prove this by double induction.
+It is not the exact solution, but it is within a constant from it, and since $E_i$ grows with $t$, the constant factor doesn't matter in practice.
+\begin{proof}
+As said previously hinted, we will do a double induction to prove the theorem. The outer one is on $i$, and the inner one on $t$. So, assume $i = 1$, the base case of the outer induction. Let's proceed with the inner one.
 
-First induction on $t$. Assume $i = 1$
-
-If $t = 1$ then
+Since $i = 1$, the graph has only one node with a self loop, by construction. Why $1$ was chosen as error constant? We started from one node with degree two. If you think about, we could have started from any other graph, but we had to change the error factor.
+ 
+In the inner base case, $t = 1$. Then
 \begin{equation}
 	E[X_1^{(1)}] = 0
 \end{equation}
-\begin{equation}
+and
+\begin{equation}\label{pa_ineq1}
 	\frac{2}{3} - 1 \leq E[X_1^{(1)}] \leq \frac{2}{3} + 1.
 \end{equation}
-
-Now we assume Equation \ref{pa_eq} is true up until $t-1$. We prove the upper bound first.
+Actually, Inequality \ref{pa_ineq1} is true for any $i$. Now we assume that Equation \ref{pa_eq}, with $i=1$, is true up until $t-1$. Let's prove that it is true also at time $t$. We prove the upper bound first.
 
 \begin{align}
 E[X_1^{(t)}] &= \left(1 - \frac{1}{2(t-1)}\right)E[X_1^{(t-1)}]\\
@@ -122,7 +150,7 @@ E[X_1^{(t)}] &= \left(1 - \frac{1}{2(t-1)}\right)E[X_1^{(t-1)}]\\
 &=\frac{2}{3}t + \left(1 -\frac{1}{2(t-1)}\right) \leq \frac{2}{3}t + 1.
 \end{align}
 
-Now the lower bound.
+Now, the lower bound.
 
 
 \begin{align}
@@ -133,7 +161,7 @@ E[X_1^{(t)}] &= \left(1 - \frac{1}{2(t-1)}\right)E[X_1^{(t-1)}]\\
 &=\frac{2}{3}t + \frac{1}{2(t-1)} \geq \frac{2}{3}t - 1.
 \end{align}
 
-Now we have proved for the base case $i = 1$. Assume Equation \ref{pa_eq} is true up until $i-1$. Let's now prove the upper bound.
+The inner induction is terminated. We have proved for the base case $i = 1$. Assume Equation \ref{pa_eq} is true up until $i-1$, for any $t$. We what to show that it is true also for the number of nodes with degree $i$. Let's now prove the upper bound.
 
 \begin{align}
 E[X_i^{(t)}] &= \left(1-\frac{i}{2(t-1)}\right)E[X_i^{(t-1)}] +\frac{i -1}{2(t-1)}E[X_{i-1}^{(t-1)}]\\
@@ -145,7 +173,7 @@ E[X_i^{(t)}] &= \left(1-\frac{i}{2(t-1)}\right)E[X_i^{(t-1)}] +\frac{i -1}{2(t-1
 &=\frac{4t}{i(i+1)(i+2)} + 1 -\frac{1}{2(t-1)} \leq E_it+1.
 \end{align}
 
-The lower bound now.
+The lower bound proof have essentially the same steps. We show it for completeness.
 
 \begin{align}
 E[X_i^{(t)}] &= \left(1-\frac{i}{2(t-1)}\right)E[X_i^{(t-1)}] +\frac{i -1}{2(t-1)}E[X_{i-1}^{(t-1)}]\\
@@ -156,3 +184,6 @@ E[X_i^{(t)}] &= \left(1-\frac{i}{2(t-1)}\right)E[X_i^{(t-1)}] +\frac{i -1}{2(t-1
 &=\frac{4(t-1)}{i(i+1)(i+2)} -1 +\frac{4}{i(i+1)(i+2)} +\frac{1}{2(t-1)}\\
 &=\frac{4t}{i(i+1)(i+2)} -1 +\frac{1}{2(t-1)} \geq E_it-1.
 \end{align}
+\end{proof}
+
+As final thought one can observe that this model is very linear, since we get the recursive equations; also, if you care only about the degree distribution, then you only need the degree count vector. In general, knowing a model well enough can make run your computations faster, discarding information you don't need. There are some things we can carve out of this lesson. As example, how big a clique can be in social network? Say it can contain 20 people more or less (compute the largest clique is NP-complete). In this model, the biggest clique is of size two, since it is a tree. It follows that it isn't a great representative of a social network under this aspect. Yet, it can give us one of the most striking properties, that is the power law degree distribution.
