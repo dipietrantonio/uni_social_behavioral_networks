@@ -33,12 +33,12 @@ We state (without proof) the Chernoff Bound, which is a powerful tool to bound a
 \begin{thm}[Chernoff Bound]
 	Let $X_1, X_2, \ldots, X_n$, $0 \leq X_i \leq 1,\forall i$, be a set of mutually independent random variables, and $X = \sum_{i=1}^nX_i$. Then
 	\begin{equation}
-	\pr{X \leq (1-\varepsilon)E[X]} \leq e^{-\frac{\varepsilon^2E[X]}{3}}
+	\pr{X \leq (1-\varepsilon)\E{X}} \leq e^{-\frac{\varepsilon^2\E{X}}{3}}
 	\end{equation}
 	
 	and
 	\begin{equation}
-	\pr{X \geq (1+\varepsilon)E[X]} \leq e^{-\frac{\varepsilon^2E[X]}{3}}.
+	\pr{X \geq (1+\varepsilon)\E{X}} \leq e^{-\frac{\varepsilon^2\E{X}}{3}}.
 	\end{equation}
 \end{thm}
 
@@ -140,7 +140,7 @@ Finally, if $|V| \geq 2$,
 		&=\pr{\frac{|E - L|}{|A|} \geq \delta + \epsilon\delta}\\
 		&=\pr{|\delta'-\delta| \geq \epsilon\delta} \tag{We want the difference small enough}\\
 		&= \pr{|X - |A|\delta| \geq \epsilon\delta|A|}\\
-		&\leq 2e^{-\frac{1}{3}\epsilon^2E[X]}\\
+		&\leq 2e^{-\frac{1}{3}\epsilon^2\E{X}}\\
 		& = 2e^{-\frac{1}{3}\epsilon^2\delta|V-L|}.
 		\end{align}	
 \end{proof}
