@@ -2,6 +2,8 @@
 
 We are going to start random graph models that would represent properties of social networks. The one model we are going to look at is the preferential attachment model, a very famous one. It was introduced so to explain one strange behavior of
 social network distributions.
+[TODO]
+We want to gie an explanation when you look at social network. As a byproduct of this fondmaetale undrstanding we get algo that in general wont work but on special cases work very well.
 
 \section{Preferential Attachment Model}
 
@@ -187,3 +189,252 @@ E[X_i^{(t)}] &= \left(1-\frac{i}{2(t-1)}\right)E[X_i^{(t-1)}] +\frac{i -1}{2(t-1
 \end{proof}
 
 As final thought one can observe that this model is very linear, since we get the recursive equations; also, if you care only about the degree distribution, then you only need the degree count vector. In general, knowing a model well enough can make run your computations faster, discarding information you don't need. There are some things we can carve out of this lesson. As example, how big a clique can be in social network? Say it can contain 20 people more or less (compute the largest clique is NP-complete). In this model, the biggest clique is of size two, since it is a tree. It follows that it isn't a great representative of a social network under this aspect. Yet, it can give us one of the most striking properties, that is the power law degree distribution.
+
+\section{Small World Phenomenon}
+
+In the Sixties Stanley Milgram and other researchers conducted an experiment on the average path length for social networks of people (in the physical world, of course)  in the United States. He wanted to claim that the six degree of separation property is valid (actually, he only thought that the average path length was small, then discovered the mean value).
+
+Here's what he did. He picked something like a thousand people in Boston, Massachusetts, from the address book in a random fashion; then, he selected one guy in New York (a friend of his), let's call him \emph{target}. He sent a letter to each of the 1000 people along the following lines:
+
+\begin{quote}
+	I would like this message to reach \emph{target}, which resides in NYC, but you can only forward this message to people whom you know personally, and asking them to do the same if they are not \emph{target}.
+\end{quote}
+Each guy tries to reach \emph{target} by sending the letter to the closest person he knows. What Milgram observed is that the average length of the chains of letters was 6.
+
+In the following decades, this experiment was confirmed by other studies. The main consequence is the understanding of fact that the social graph diameter is small. In fact Jon Kleinberg observed something more striking: not only the chain among two random people is small in average, but people can find the next step without looking at the full graph. Each of the guys didn't know the shortest path, but only a sense of where their friend were.
+
+Kleinberg tried to find a model that could explain the small diameter and allow the discovery of the chain efficiently. 
+
+In the model Kleinberg proposed, people live on a bi-dimensional grid, $n \times n$, and each person lives in exactly one cell of the grid, denoted by some coordinates $(i, j)$. We can think of it also as a graph where the nodes are
+
+\begin{equation}
+V = \{(i, k) : 1 \leq i,j\leq n\}.
+\end{equation}
+
+The simples model works as follows. Each person has short links to its geographical neighbor people. In addition, each person $u$ has one long range contact $v$ (denoted by $u \longrange v$), where $u$ and $v$ are not geographical neighbors; this can be motived by the fact that sometimes people travel and become friends with people who live far away. A person $(i, j$) chooses as long range friend $(k, l)$ (thus establishing a link) as follows.
+
+\begin{equation}\label{eq:smp_density}
+\pr{(i,j) \longrange (k, l)} \propto (|i-k| + |j-l|)^{-2} = l_1((i,j), (k,l))^{-2},   
+\end{equation}
+
+where $l_1$ is the Manhattan distance. The exponent might feel arbitrary but we will show that, if the long range links are chosen in this way, then the expected length of the chains will be polylogarithmic. Any other value different from $-2$ will lead to a polynomial length. In a sense, one of the most striking practical observations Kleinberg made is that Equation \ref{eq:smp_density} is the density at which long links should exists for this property to hold, and people have observed that the same type of density is what happens to exist in real social networks. The back-then Yahoo Messenger researchers, analyzing all the users' connections, confirmed that Equation \ref{eq:smp_density} represents the correct guess form which links distribution is induced. 
+
+In terms of the graph, the actual probability is
+\begin{equation}\label{problongrangelink}
+\pr{u \longrange v} = \frac{d(u,v)^{-2}}{\sum_{z\neq u}d(u, z)^{-2}}
+\end{equation}
+
+where $d= l_1$. Observe that the long range links are chosen independently.
+
+We would like to prove that chains have length $\log^2(n)$ in average. This isn't the same as saying that there exist one path of $\log^2(n)$; that wouldn't give us what we want. In fact, it can be shown that there always exists a path of length $\log(n)$, that is shorter. Rather, we want to claim that the algorithm we are going to see requires $\log^2(n)$ many steps (where each step is associated to a link)  to find chains in practice. Also it is a tight bound, no other algorithm can do better.
+
+\begin{algorithm}
+		\textbf{Input:} a node $s$, destination $t$, the message $M$\;
+		$c \gets s$\;
+		\While{$c \neq t$}{
+		$w \gets$ neighbor of $c$ that has the smallest $l_1$ distance to $t$ (break ties arbitrarily)\;
+		$c$ forwards $(M, t)$ to $w$\;
+		$c \gets w$\;
+	}
+		\caption{\textsc{geo-greedy} algorithm}
+		\label{geogreedyalgo}
+\end{algorithm}
+
+Algorithm \ref{geogreedyalgo} resembles the Milgram experiment. At each iteration, the current person $c$ forwards the letter to the closest friend to the target $t$ he knows.
+
+Before proving any theorem, let's discuss a proof technique and make some observations along the way. First of all, the process we are studying can be in principle hard to study, but there are some properties of the random graph that help a lot. 
+
+The first one is that each node chooses its long range contact independently at random. Equation \ref{problongrangelink} can be thought as a distribution over random graphs. Why this can help us? If we get to a new node, then we can assume that exactly at the time we get there the long range contact is chosen, since the choice of the long range contact is independent of other random choices we made so far. The other thing is that we never get to the same node twice. You can always make one step closer to the destination. The distance of of the current node in the Algorithm \ref{geogreedyalgo} decreases by at least one at each step. These properties allow us to study the algorithm and produce the random graph as the algorithm proceeds. As Algorithm \ref{geogreedyalgo} goes to a new node, a random independent choice is made at random. So it is easier than what happened in the Preferential Attachment model. 
+
+What we want to prove is that, no matter which node we are, there is a reasonable chance that we will be able to halve the distance from ourselves to the final destination. Suppose that, using the random choice, we can prove that the probability of halving the distance is at least some $p$ (think of it as a large number). Then, after $\frac{1}{p}$ steps we will have divided by two the distance to the destination with constant probability. This proof idea has been seen different times by now, in the chain letters and coin tossing, as examples.
+
+If $t$ is the final destination, lets look at a large ball around $t$. If we are some node $c$ there is a reasonable chance that our long range contact will end up inside this ball. The radius of the ball is half of the distance from $t$ that we are currently at.
+
+\begin{thm}
+	For any source $s$ and destination $t$, \textsc{geo-greedy} will make an expected number of steps to go from $s$ to $t$ of $O\left(\log^2(n)\right)$.
+\end{thm}
+
+\begin{proof}
+Remember that, in the end, we want to show that the probability for our long range link to end up in the ball is high. For this purpose, it is necessary to estimate the number of nodes in the ball. But first, let's give a bound to the normalizing factor in Equation \ref{problongrangelink}. By looking closer to it, we can derive the following statement.
+\begin{equation}\label{longrangenormfact}
+\sum_{z \neq u}d(u, z)^{-2} = \sum_{i \geq 1} i^{-2} |\{z : d(z, u) = i\}|
+\end{equation}
+
+We actually have to bound the number of nodes at any geographical distance from any given node. Let $S_u^r = \{z : d(z, u) = r\}$. What is the value of $|S_u^r|$? It is the number of nodes on the surface of the ball of radius $r$ and centered in $u$. We will upper bound the size of the surface in the following way.
+
+\begin{align}
+S_u^r &= \{z : d(z, u) = r\}\\
+& \subseteq \{(i + k, j + r -k) : 0\leq k \leq r\}\\
+& \indent\cup \{(i + k, j - r -k) : 0\leq k \leq r\}\\
+& \indent\cup \{(i - k, j - r -k) : 0\leq k \leq r\}\\
+&\indent\cup \{(i - k, j + r -k) : 0\leq k \leq r\}
+\end{align}
+
+The reason why we partitioned the edges in this way is that it easy to compute the cardinalities. In fact we easily state that 
+\begin{equation}
+|S_u^r| \leq 4(r + 1).
+\end{equation}
+
+We can improve the upper bound a little bit, because we are overcounting by an additive factor of four. By removing the elements in the intersections (the elements ``at the corners'') we can state the following Lemma.
+
+\begin{lem}\label{lem:swp_surface_ub}
+\begin{equation}
+|S_u^r| \leq 4(r +1) - 4 = 4r.
+\end{equation}
+\end{lem}
+
+But is this bound tight for any node in the graph (or grid)? The nodes at the edges can get a better upper bound. A node in the corner will have only one of the above sets, while a node on the edge will have two. As $r$ becomes bigger and bigger, we will exceed the size of the grid at some point in time, since it is finite, and the surface will be empty. This leads us to the following statement.
+
+\begin{lem}\label{lem:swp_surf_lb}
+\begin{equation}
+\forall r \leq \frac{n}{2}\ |S_u^r| \geq r
+\end{equation}
+\end{lem}
+
+We give the idea to prove this lemma. Divide the grid in 4 parts. A node $u$ is in one of those 4 parts; then it means we can pick a node at distance $\frac{n}{2}$ in both the adjacent quadrants' direction, defining a set of $r+1\geq r$ nodes on the segment that connect the two picked nodes. We move $\frac{n}{2}$ steps in both direction, and pick the nodes that define the edge set.
+
+To upper bound the normalizing factor shown in Equation \ref{longrangenormfact}, we will make use of the following observations.
+
+\begin{obs}\label{lem:armonic}
+	\begin{equation}
+	\sum_{i=1}^t \frac{1}{i} \leq 1 + \ln{t+1}
+	\end{equation}
+\end{obs}
+
+\begin{obs}\label{lem:logadd}
+	\begin{equation}
+	1 + \log_b{x} = \log_b{bx}
+	\end{equation}
+	\begin{proof}
+		\begin{align}
+		1 + \log_b(x) &= \log_b(b) + \log_b(x)\\
+		&= \log_b(bx)
+		\end{align}
+	\end{proof}
+\end{obs}
+
+From Equation \ref{longrangenormfact} it can be derived that
+\begin{align}
+\sum_{z \neq u}d(u, z)^{-2} &= \sum_{i \geq 1} i^{-2} |\{z : d(z, u) = i\}|\\
+&\leq \sum_{i \geq 1}^{2n-2}i^{-2}4i \tag{Lemma \ref{lem:swp_surface_ub}}\\
+&=4\sum_{i \geq 1}^{2n-2} \frac{1}{i}\\
+& \leq 4(1 + \ln(2n-1)) \tag{Observation \ref{lem:armonic}}\\
+& \leq 4(1 + \ln(2n))\\
+& = 4\ln(2en) \tag{Observation \ref{lem:logadd}}\\
+& \leq 4\ln(6n).
+\end{align}
+
+We have a more algebraic bound on the normalizing factor, and we can state the following Lemma.
+\begin{lem}\label{lem:longrangeprob_rev}
+\begin{equation}
+\pr{u \longrange v} \geq \frac{d(u, v)^{-2}}{4\ln(6n)},
+\end{equation}	
+\end{lem}
+
+Now we can go back to the algorithm's behavior, analyzing how much time we need to halve the distance from where we are to final destination. We say that Algorithm \ref{geogreedyalgo} is in phase $j$ if its current node $c$ satisfies the constraint
+\begin{equation}
+2^j \leq d(t, c) \leq 2^{j + 1}.
+\end{equation}
+
+Observe that phases go in the unusual direction. The algorithm starts from phase $j$, with $j$ that can be as large as $\ln(n+1)$ in the worst case, and then  $j$ decreases. Essentially, we want to show that the time to go from one phase to the other is small. 
+
+Define the random variable $X_j$ to be
+\begin{equation}
+X_j = \textit{number of steps that we spend in phase } j.
+\end{equation}
+
+The total number of steps $X$ the algorithm will need, then, is
+
+\begin{equation}
+X = \sum_{j = 0}^{1 + \log(n)}X_j.
+\end{equation}
+
+In this way we are bucketing the number of steps the Algorithm \ref{geogreedyalgo} takes according to phases. The reason why is that it's easy to upper bound the expected number of steps in a phase, because the distances between a node of a specific phase to the destination are going to be all within a constant factor to each other. If we manage to show that $X_j$ is logarithmic then we are done. What does it mean that a phase, in expectation, will require at most $\log(n)$ many steps? It can happen because we have to take at least one long range link, and we will prove it now.
+
+As we said, we want to hit a ball around the target when choosing the next long range link, and  it happens with roughly the probability of being a node in the ball times the number of nodes in the ball. We said ``roughly'' because each node has not the same probability to be chosen, but they are not so different. We need to know how many nodes are in the ball and, for the probability of getting it the ball to be high, we need to lower bound that number. This is different from what we were doing before. To prove the lower bound on the probability of reaching a specific node, in Lemma \ref{lem:longrangeprob_rev}, we had to upper bound the number of nodes in the sphere, whereas here we want the number of nodes in the ball to be large.
+
+
+Here we care about the content of the sphere too, because it is sufficient to hit any node in the sphere, actually the closer to the center the better.
+
+\begin{defn} We define the ball of radius $r$ and centered in $u$ as
+	\begin{equation}
+	B_u^r = \{ u : d(u, v) \leq r \}.
+	\end{equation}
+\end{defn}
+
+To lower bound the volume of the ball we can observe that
+
+\begin{equation}
+|B_u^r| \geq \left|B_u^{\lceil \frac{r}{4}\rceil}\right|,
+\end{equation}
+
+since the radius of the ball in the RHS is smaller, making the ball cover less nodes. The reason for $\frac{r}{4}$ is that the lower bound in Lemma \ref{lem:swp_surf_lb} works for radius values up to $\frac{n}{2}$ and the actual radius of the ball we care about might be large as the diameter of graph, roughly $2n$. What is the size of $B_u^{\lceil \frac{r}{4}\rceil}$? It is the sum of the sizes of the smaller spheres that are inside the ball. This is why we need to use Lemma \ref{lem:swp_surf_lb}. We make the ball smaller so that $2n$ will become $n/2$. Some contribution will be lost, but it has to be done.
+
+\begin{equation}
+\left|B_u^{\lceil \frac{r}{4}\rceil}\right| = \sum_{i = 0}^{\lceil \frac{r}{4}\rceil}|S_u^i|.
+\end{equation}
+
+Let's take out the cardinality of the sphere with radius 0,which is one.
+\begin{align}
+\left|B_u^{\lceil \frac{r}{4}\rceil}\right|&=\sum_{i = 1}^{\lceil \frac{r}{4}\rceil}|S_u^i| + 1\\
+&\geq \sum_{i = 1}^{\lceil \frac{r}{4}\rceil}i + 1 \tag{Lemma \ref{lem:swp_surf_lb}}\\
+&=1 + \frac{\lceil \frac{r}{4}\rceil(\lceil \frac{r}{4}\rceil + 1)}{2}\\
+&\geq \frac{r^2}{32}.
+\end{align}
+
+\begin{lem}
+	\begin{equation}
+		\left|B_u^r\right| \geq \frac{r^2}{32}.
+	\end{equation}
+\end{lem}
+
+We now have all the pieces we need. We know how big the ball is going to be and we have a good lower bound on the probability of our current node to have a long range link to any node in the ball.
+
+Take phase $j$ and consider any node $x \in B_t^{2^j}$. Let $c$ be the current node in Algorithm \ref{geogreedyalgo}.
+
+\begin{align}
+d(c, x) &\leq d(c, t) + d(t, x)\\
+&\leq 2^{j+1} + 2^j\\
+&\leq 2^{j+2}.
+\end{align}
+
+What we got is that, for any node in the final ball we are trying to hit, the distance between $c$ and that one node is not that large. Let's apply Lemma \ref{lem:longrangeprob_rev}.
+
+\begin{align}
+\pr{c \rightsquigarrow x} &\geq \frac{d(c, x)^{-2}}{4\ln(6n)}\\
+&\geq \frac{2^{-2j -4 -2}}{\ln(6n)}\\
+& =\frac{2^{-2j -6}}{\ln(6n)} \label{ieq:smp_lb_prob}.
+\end{align}
+
+Inequality \ref{ieq:smp_lb_prob} shows the probability of $c$ to have the long range contact inside the ball in phase $j$. Why is this useful? We have the square of the radius many nodes in the ball. The radius i $2^j$, which yields to $2^{2j}$ by substitution; multiplying that quantity with the lower bound shown in Inequality \ref{ieq:smp_lb_prob} results in a constant over $\log(n)$, which is large enough.
+
+\begin{align}
+\pr{\exists x \in B_t^{2^j} : c \rightsquigarrow x} &= \sum_{x \in B_t^{2^j}}\pr{ c \rightsquigarrow x}\\
+&\geq \sum_{x \in B_t^{2^j}}\frac{2^{-2j -6}}{\ln(6n)}\\
+&\geq\frac{(2^{j})^2}{32}\frac{2^{-2j -6}}{\ln(6n)}\\
+&=\frac{2^{2j-5-2j-6}}{\ln(6n)}\\
+&=\frac{2^{-11}}{\ln(6n)} = \frac{1}{2048\ln(6n)}.
+\end{align}
+The constant is large, but we didn't pay too much to make it smaller; it doesn't matter for our purposes anyway. Now, how many steps the algorithm will spend in phase $j$? We have a reasonable probability of hitting the ball and going to the next phase.
+
+\begin{obs}
+	\begin{equation}
+	\sum_{i=0}^\infty(1-x) = \frac{1}{x},\ 0 < x <1.
+	\end{equation}
+\end{obs}
+
+Let's compute the expected number of steps.
+\begin{align}
+E[X_j] &= \sum_{i = 1}^\infty i\pr{X_j = i}\\
+&=\sum_{i = 1}^\infty\pr{X_j \geq i}\\
+&\leq \sum_{i = 1}^\infty\left(1 - \frac{1}{2048\ln(6n)}\right)^{i-1}\\
+&=\sum_{i = 0}^\infty\left(1 - \frac{1}{2048\ln(6n)}\right)^{i}\\
+&=2048\ln(6n).
+\end{align}
+
+Finally, notice that we are summing the expected value $\log(n)$ times,yielding to an expected running time of $\log^2(n)$.
+
+\end{proof}
+
+There are a few things that could be said. One is that this proof only shows that in expectation the algorithm takes $\log^2(n)$ steps; what can be shown is that this happens with high probability. The second thing is, as observed by Kleinberg, if the probability doesn't use the constant $-2$, then the time to completion becomes polynomial. In the exposed work he proposed a model according to which people chooses long range contacts. The model was validated years later looking at data, a very surprising outcome. Other observations are on the model. We started from a grid, but it is not that important. The proof has been recreated for other geometries. Finally, one can regards this as a beautiful example of using theory to guess about realty, without being able to meet that guess.
+
