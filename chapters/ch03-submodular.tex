@@ -11,7 +11,7 @@ Given $k \geq 1$ and a set of sets $S$, find a $S_k \subseteq S$, $|S_k| = k$, s
 	\textbf{Input}: $S, k$\\
 	$X_0 \gets \emptyset$\;
 	\For{$i = 1, \ldots, k$}{
-		$s \gets \textit{argmin}_{s \in S}|X_{i-1} \cup s|$\;
+		$s \gets \argmax_{s \in S}|X_{i-1} \cup s|$\;
 		$X_i \gets X_{i-1} \cup s$
 	}
 	\Return $X_k$
@@ -208,7 +208,7 @@ If $f$ is submodular, $-f$ is submodular? Only when the property holds at equali
 \end{proof}
 
 \section{Facility location}
-Now we are going to give an example of submodular function optimization problem. Let $\mathcal{F} = \{F_1, \ldots, F_n\}$ be a set of facilities and $\mathcal{U} = \{U_1,\ldots, U_m\}$ a set of users. Maybe $\mathcal{F}$ is the set of universities in Rome and $\mathcal{U}$ the set of (wannabe) students in Rome. Student $U_i$ gets a gain $M_{ij} \geq 0$ for starting a program at University $F_j$. So what a student would do? He would go to the facility that gives the maximum gain. If thats the protocol, it is all very easy. But suppose you are the government and you can't open all the $n$ universities, but only $k$ of them. We have to select $S = \{i_1,\ldots, i_k : U_{i_k} \in \mathcal{U}\}$ facilities so to maximize $\sum_{i = 1}^m \max_{j \in S} M_{ij}$.
+Now we are going to give an example of submodular function optimization problem. Let $\mathcal{F} = \{F_1, \ldots, F_n\}$ be a set of facilities and $\mathcal{U} = \{U_1,\ldots, U_m\}$ a set of users. Maybe $\mathcal{F}$ is the set of universities in Rome and $\mathcal{U}$ the set of (wannabe) students in Rome. Student $U_i$ gets a gain $M_{ij} \geq 0$ for starting a program at University $F_j$. So what a student would do? He would go to the facility that gives the maximum gain. If that's the protocol, it is all very easy. But suppose you are the government and you can't open all the $n$ universities, but only $k$ of them. We have to select $S = \{i_1,\ldots, i_k : U_{i_k} \in \mathcal{U}\}$ facilities so to maximize $\sum_{i = 1}^m \max_{j \in S} M_{ij}$.
 
 What is the function we are going to prove to be submodular?
 

@@ -27,7 +27,7 @@ First of all, it differs from $G(n,p)$ because it is evolutionary, not fixed. It
 
 Formally, given the graph $G_{t-1}$, the probability of a node $v \in V(G_{t-1})$ to be chosen at time $t$ to be the neighbor of the new node is
 \begin{equation}
-P(v) = \frac{\deg{v}}{\sum_{v' \in V(G_{t-1})} \deg{v'}}
+P(v) = \frac{\deg(v)}{\sum_{v' \in V(G_{t-1})} \deg(v')}
 \end{equation}
 
 It follows that the probability distribution may change every time a new node is added. It is evolutionary, and we can't make and independent choice for each edge. When we are in such a situation, studying the graph is hard, in fact there are many things we don't know about this model. But it is possible to study the degree distribution and to show  that it is actually a power law distribution.

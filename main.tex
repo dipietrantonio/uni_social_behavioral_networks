@@ -29,10 +29,17 @@
 \newtheorem{claim}{Claim}
 \newtheorem{defn}{Definition}
 
-\renewcommand{\deg}[1]{\emph{deg(#1)}}
+\renewcommand{\deg}{\textit{deg}}
+\newcommand{\indeg}{\textit{indeg}}
 \newcommand{\E}[1]{E\left[#1\right]}
 \newcommand{\pr}[1]{\emph{Pr}\left\{#1\right\}} %probability
 \newcommand{\longrange}{\rightsquigarrow}
+\newcommand{\xvec}{\overline{x}}
+\newcommand{\yvec}{\overline{y}}
+\newcommand{\opt}{\text{OPT}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\avg}{avg}
 \begin{document}
 
 \maketitle
@@ -45,5 +52,6 @@
 \input{chapters/ch02-chernoff-bound}
 \input{chapters/ch03-submodular}
 \input{chapters/ch04-random-graphs}
+\input{chapters/ch05-densest-subgraph}
 \printbibliography
 \end{document}

@@ -42,7 +42,7 @@ Authors in \cite{KDD13} shows that we can reconstruct (in most cases) the graph 
  Consider Algorithm \ref{algo:firstedge}. What it does is simply adding an edge between the first and second node in a trace, for every trace. That is because we can only be sure about the existence of that edge. The first node in a trace is the source (for that trace), since it has the lowest timestamp; the second node, which has the second lowest timestamp, could only get the information from the first node.
  
  \begin{thm}
- 	 If there are $|T| \geq cn\Delta\log n$ traces, the first-edge algorithm can reconstruct the unknown graph $G=(V, E)$ with probability $p \geq 1 - \frac{1}{n^{2(c-1)}}$, where $n = |V|$, $\Delta = \max_v \deg{v}$ and $c$ is a constant.
+ 	 If there are $|T| \geq cn\Delta\log n$ traces, the first-edge algorithm can reconstruct the unknown graph $G=(V, E)$ with probability $p \geq 1 - \frac{1}{n^{2(c-1)}}$, where $n = |V|$, $\Delta = \max_v \deg(v)$ and $c$ is a constant.
  \end{thm}
 \begin{proof}
 	An edge $\{u, v\}$ will be in the graph if and only if $u$ and $v$ appears at the beginning of at least one trace. We will prove that it happens with high probability.
@@ -55,11 +55,11 @@ Authors in \cite{KDD13} shows that we can reconstruct (in most cases) the graph 
 	The probability of $\xi_1$ is given by
 	\begin{align}
 	\emph{Pr}\{\xi_1\} &= \emph{Pr}\{t[0] = x\}\emph{Pr}\{t[1] = y, y\in \{u, v\}\setminus\{x\}\ |\ t[0] = x\},\  x\in \{u, v\}\\
-	&= \frac{2}{n}\frac{1}{\deg{x}}, x \in \{u, v\}\\
+	&= \frac{2}{n}\frac{1}{\deg(x)}, x \in \{u, v\}\\
 	&\geq \frac{2}{n\Delta}.
 	\end{align}
 	
-	In other words it is the probability of one of the two nodes $u, v$ to appear as first node in the trace multiplied by the probability that the other appears as second node in the trace. Since the source is selected uniformly at random, every node has the same probability $\frac{1}{n}$ to be picked; for us, either $u$ or $v$ will do. Next, assume without loss of generality (wlog) that $u$ is picked as first node. The second node will now be drawn from the neighbors of $u$ (convince yourself that there can't be a node $y$ after the first node in the trace without it being one of its neighbors). The probability that the neighbor picked is $u$ is $\frac{1}{\deg{u}}$ that can be overestimated using $\Delta$.
+	In other words it is the probability of one of the two nodes $u, v$ to appear as first node in the trace multiplied by the probability that the other appears as second node in the trace. Since the source is selected uniformly at random, every node has the same probability $\frac{1}{n}$ to be picked; for us, either $u$ or $v$ will do. Next, assume without loss of generality (wlog) that $u$ is picked as first node. The second node will now be drawn from the neighbors of $u$ (convince yourself that there can't be a node $y$ after the first node in the trace without it being one of its neighbors). The probability that the neighbor picked is $u$ is $\frac{1}{\deg(u)}$ that can be overestimated using $\Delta$.
 	
 	Now, the complementary event of $\xi_1$ is ``the edge $\{u,v\}$ is not inferred using trace $t$'' and its probability is $(1 - \frac{2}{n\Delta})$. For the edge not to be inferred at all, there should be no trace from which that edge can be extracted.
 	\begin{equation}

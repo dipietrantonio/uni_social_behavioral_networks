@@ -1,0 +1,526 @@
+
+\chapter{Linear programming for approximation algorithms}
+
+ In this chapter Linear Programming is introduced as a tool to build approximation algorithms. In particular, we use the \emph{Densest Subgraph} problem (DSG for short) as a practical example because some practitioners believe that it is a good primitive to find community of people. Also, this problem is in $P$ and we will solve it through linear programming, although the original solution used max flow.
+
+\section{Linear Programming}
+
+Linear Programming (LP) is arguably the most important technique when it comes to approximation algorithms, and many approximations proved with other methods can be understood as linear programming proof. The following is a famous example for introducing the technique.
+
+Suppose you are a farmer and have a $L$ $\text{Km}^2$ field; you need to decide how to plant crops in your field. Should you plant only potatoes or barleys, or a mix of the two? Each of the crops will make you earn a different amount of money when you will sell it. Define
+
+\begin{center}
+$S_p = $ selling price for potatoes, per $\text{Km}^2$\\
+$S_b = $ selling price for barleys, per $\text{Km}^2$\\
+\end{center}
+
+If you had no constraint, you would plant the crop with highest selling price. But the size of the field is limited, as well as the amount $F$ of fertilizer you have.
+\begin{center}
+$F_p = $ Weight of fertilizer needed for potatoes, per $\text{Km}^2$\\
+$F_p = $ Weight of fertilizer needed for barley, per $\text{Km}^2$
+\end{center}
+
+We can solve this introducing two variables $X_p$ and $X_b$, which are the amount of square Km that will be allocated to potatoes and barleys respectively.
+
+\begin{equation}
+\begin{cases}
+X_p + X_b \leq L\\
+F_pX_p + F_bX_b \leq F\\
+X_p, X_b \geq 0\\
+\max (S_pX_p + S_bX_b)
+\end{cases}
+\end{equation}
+
+The goal is to find values of the variables that satisfies the constraints above and maximizes the \emph{objective function}.
+
+In general, a linear program can have zero, one or infinite solutions and zero, one or infinite optimal solutions. To simplify the discussion here, we assume only one optimal solution. A simple LP like the above was very useful in past years when they could solve this by hand or with simple algorithms. For a number of centuries, the \emph{simplex algorithm} was the only algorithm known; it is very inefficient, meaning that in general will require a time exponential in number of variables and constraints. As of today, there are algorithms that run in polynomial time for this kind of linear programs. 
+
+The form of a general linear program comprises a variable vector $\xvec \in \mathcal{Q}^{n\times 1}$, coefficient and constant matrices $\mathbf{A} \in \mathcal{Q}^{m\times n}$,  $\mathbf{b}, \mathbf{C} \in \mathcal{Q}^{1\times n}$. We are using rationals because we would like to be able to do computations. If they were reals, then it wouldn't be clear even how to perform additions between two numbers (because of the infinite precision required).
+
+\begin{equation}\label{lp:primalform}
+\begin{cases}
+\max \mathbf{C}\xvec\\
+\mathbf{A}\xvec \leq \mathbf{b}\\
+\xvec \geq 0
+\end{cases}
+\end{equation}
+
+The non-negativity constraints are very important, since otherwise the solution wouldn't make sense (in fact, it could create an unbounded solution). The system of inequalities \ref{lp:primalform} is called a general \emph{primal} linear program. ``General'' because any LP can be reduced to it, and ``primal'' because it has a maximization as objective function (by convention). Having a general form is desirable because one can develop algorithms that work for any LP and which running time depends on the parameters of the system. Here, the parameters are the number of constraints, which is $m$, and the number of variables, which is $n$. Observe that it is impossible to get an algorithm which runs in $O((mn)^c)$, since the input size is much larger than that. One has to take in account the size of $\mathbf{A}$ in terms of bits. In fact, one can prove that the running time is 
+
+\begin{equation}\label{lprunningcost}
+T(m, n) =O\left((nm\log\left(|A|_\infty\right))^c\right),
+\end{equation}
+
+where $\log\left(|A|_\infty\right)$ is the bit cost of the input.
+
+In the \emph{knapsack problem} we have the same situation, since the algorithm to solve it uses dynamic programming and thus a table $\mathbf{A}$. The table contains an element for each sum of the values and each sum of the weights of the elements you can put inside the knapsack. The input to the algorithm is a tuple ($t^n, t^n)$ representing the weights and the values, and can be represented with polynomially many bits (in fact $O(nt\log t)$). If we were to use dynamic programming, though, then the running time will be exponential, since we have to scan at least $t^n$ many entries. When people say that knapsack is polynomial time solvable they assume the weights' value is bounded by a polynomial. Most ot the time one has to take in account the bit cost of the input.
+
+Notice that the bound expressed in Equation \ref{lprunningcost} is not tight (we don't know the constant $c$). There is no way to say which is the exact running time because we have algorithms that we don't fully understand, but works well in practice. From an approximation algorithms' point of view we can say that, if the LP has polynomial size, then it is solvable in polynomial time. In fact, one could actually solve an exponential LP in polytime (not shown here).
+
+One important concept we will see in use later is the \emph{dual} linear problem of a primal problem. It is defined as
+
+\begin{equation}\label{lp:dualform}
+\begin{cases}
+\min \mathbf{b}'\yvec\\
+\mathbf{A}'\yvec \leq \mathbf{C}\\
+\yvec \geq 0
+\end{cases}
+\end{equation}
+
+The primal is a max linear program, whereas the dual is a min linear program obtained using the same (transposed) coefficient and constant matrices of the primal; the variable vector has dimension $m$ instead of $n$. This connection is useful because of the following theorem.
+
+\begin{thm}[Weak Duality]
+\begin{equation}
+    \opt(\text{primal}) \leq  \opt(\text{dual})
+\end{equation}
+\end{thm}
+
+If we have a primal, then we can guess a solution $X$, check that it satisfies the constraints and evaluate how good it is by using the objective function. But how do we know if the solution is optimal or close to optimal? We can write and solve the dual, then we would know the dual's optimum is greater or equal to the primal's. If one guesses a solution for the primal and guesses a  solution for the dual, and their costs are close, then we are close to the optimal solution.
+
+\begin{thm}[Strong Duality]
+\begin{equation}
+    \opt(\text{primal}) = \opt(\text{dual})
+\end{equation}
+\end{thm}
+
+The strong duality tells us that if both primal and dual admit solution they have the same value for the optimum solution.
+
+\section{K-max cover as LP}
+To give an example, we will revise the K-max cover as a linear program. The first thing we need to guarantee is that the solution selects only $K$ sets. So lets introduce a variable $X_i$ for each set, such that
+\begin{equation}
+X_i = \begin{cases}
+1 & \text{If the i-th set is picked},\\
+0 & \text{otherwise.}
+\end{cases} 
+\end{equation}
+
+Therefore their sum must be $K$. Then, I should be able to tell if I picked or not a specific element, since my objective function in max cover is ``pick as many element you can''. So
+\begin{equation}
+Y_i = \begin{cases}
+1 & \text{If the i-th element is picked},\\
+0 & \text{otherwise.}
+\end{cases} 
+\end{equation}
+
+Notice that $Y_i$ can be one only if at least one variable $X_j$ such that element $i$ is in set $j$, is set one. It means we picked a set containing element $i$, so we picked element $i$. It follows a linear program, with $i, j \in [n]$.
+
+\begin{equation}\label{lp:maxcover}
+\begin{cases}
+\sum_{i=1}^m X_i \leq k\\
+Y_j \leq \sum_{i: j\in S_i} X_i\\
+0 \leq X_i, Y_j \leq 1\\
+\max \sum_j Y_j
+\end{cases}
+\end{equation}
+
+Notice that we can't force the variables to be binary. If we could, then we would get an optimal solution for $K$-max cover. We cannot do that, since max-cover is NP-Hard.  Therefore, what people do is to look for fractional solutions, which are not properly suited for max cover since we would picking, say, a set for $\frac{1}{3}$ of it and, say, we could pick $\frac{2}{3}$ of an element. Of course, it  doesn't make sense, but what can be proven is the following theorem.
+\begin{thm}
+The optimal k-max cover solution has a value which is
+\begin{equation}
+\left(1 - \frac{1}{e}\right)\opt_{\text{LP}} \leq \opt_{\text{MC}} \leq \opt_{\text{LP}},
+\end{equation}
+where $\opt_{\text{LP}}$ is the optimum found using the LP and $\opt_{\text{MC}}$ is the actual optimal value for k-max cover.
+\end{thm}
+
+And we have already proved this approximation. In fact, the proof we gave was indirectly based on the linear program, since were proving a bound between the dual of the Linear Program \ref{lp:maxcover} and the optimal solution for max cover. 
+
+\section{Densest Subgraph problem}
+
+The densest subgraph problem is that of finding a subgraph of maximum density. Formally, give a graph $G = (V, E)$, find $S\subseteq V$ that maximizes
+
+\begin{equation}
+f(S) = \frac{|E(S)|}{|S|},
+\end{equation}
+
+where
+
+\begin{equation}
+E(S) = \{ \{i, j\} : \{i, j\} \in E \wedge \{i, j\} \subseteq S \}.
+\end{equation}
+
+In other words, we are looking for a part of the graph that maximizes the average degree (within a factor of 2).
+
+The densest subgraph problem can be formulated as a linear program using some of the ideas used for $K$-max cover. Starting from the objective function, we want something that says ``get as many edges as possible in the final graph''; so, it seems natural to maximizes the number of edges we can put in the final subset of nodes. Observe, though, that we cannot maximize $f(S)$ since it is not linear. One can take another approach and look only at the numerator. We define a variable $X_{\{i, j\}}$ to be the fractional amount of edge $\{i, j\}$ that is put inside the solution. The objective function is
+\begin{equation}
+\max\sum_{\{i, j\} \in E}X_{\{i, j\}}.
+\end{equation}
+
+For each edge, we cannot pick that edge fractionally more than the amount with which we pick one of its endpoint. For example, if we pick $\{i, j\}$ for $\frac{1}{2}$ of its entirely, then it is the case that we had to pick both $i$ and $j$ for at least $\frac{1}{2}$. This can be expressed introducing a variable $Y_i$ for each node $i$, representing the fractional amount with which we pick node $i$; then, we can say that
+\begin{align}\label{eq:x_size_constraint}
+X_{\{i, j\}} &\leq Y_i,\\
+X_{\{i, j\}} &\leq Y_j.
+\end{align}
+Up until now the LP is unbounded. We now need to model the denominator by saying that the total amount with which nodes of the graph are picked must be limited; we can think of that amount being, say, 1 to normalize it. Making the denominator a constant allows us to linearize the objective function.
+
+\begin{equation}\label{eq:dsg_denominator_constraint}
+\sum_{i=1}^n Y_i \leq 1.
+\end{equation}
+
+Finally, the variables must be nonnegative. Putting all together we have the following LP.
+
+\begin{equation}\label{lp_densest_subg}
+\begin{cases}
+\max\sum_{\{i, j\} \in E}X_{\{i, j\}}\\
+X_{\{i, j\}} \leq Y_i\\
+X_{\{i, j\}} \leq Y_j\\
+\sum_{i=1}^n Y_i \leq 1\\
+X_{\{i, j\}}, Y_j \geq 0
+\end{cases}
+\end{equation}
+
+What we will be proving is that the optimal solution $\opt_{\text{LP}}$ of this LP is equal to the optimal solution of the original densest subgraph problem. To do so we need the following set of lemmas.
+
+\begin{lem}\label{lem:dsp:lem1}
+\begin{equation}
+\forall S \subseteq V\ \opt_{\text{LP}} \geq f(S).
+\end{equation}
+\end{lem}
+
+\begin{proof}
+To prove this we have to show a solution of the LP which is feasible and has a value at least $f(S)$. Thus, now we give one and show that it meets the requirements. Let
+\begin{equation}\label{eq:sgp_y_venly_splitted}
+    Y_i = 
+    \begin{cases}
+    \frac{1}{|S|} & i \in S,\\
+    0 & i \not\in S.
+    \end{cases}
+\end{equation}
+
+Remember that the $Y_i$'s were the variables representing how much of each node in the graph we are taking, and Equation \ref{eq:sgp_y_venly_splitted} states that we split the unit among the nodes in the set $S$.
+
+The second part is the following:
+\begin{equation}
+    X_{\{i, j\}} = 
+    \begin{cases}
+    \frac{1}{|S|} & \{i, j\} \subseteq S,\\
+    0 & \{i, j\} \not\subseteq S.\\
+    \end{cases}
+\end{equation}
+
+To show this solution is feasible we check that every constraint is satisfied. Let's start with Inequality \ref{eq:dsg_denominator_constraint}.
+
+\begin{equation}
+\sum_{i} Y_i = |S| \frac{1}{|S|} = 1,
+\end{equation}
+
+so far, so good. Let's proceed with Inequality \ref{eq:x_size_constraint}, starting with a generic $\{i, j\} \in E$. We have two cases:
+
+\begin{itemize}
+\item $\{i, j\} \not\subseteq S$. In this case we want to guarantee that
+\begin{equation}
+\begin{cases}
+X_{\{i, j\}} \leq Y_i\\
+X_{\{i, j\}} \leq Y_j
+\end{cases}
+\implies X_{\{i, j\}} \leq \min{\{Y_i, Y_j\}},
+\end{equation}
+but both sides are zero since $\{i, j\} \not\subseteq S$.
+
+\item $\{i, j\} \subseteq S$. Then \begin{equation}
+\frac{1}{|S|} = X_{\{i, j\}} \leq  \min{\{Y_i, Y_j\}} = \frac{1}{|S|}.
+\end{equation}
+\end{itemize}
+
+We demonstrated that the solution is feasible. But what is its value?
+
+\begin{equation}
+\sum_{\{i, j\} \in E} X_{\{i, j\}}= |E(S)| \frac{1}{|S|} = f(S).
+\end{equation}
+\end{proof}
+
+What we have shown is that the LP's optimal value is never worst than the original densest subgraph problem's optimum. Now we want to prove the other direction to get equality.
+
+\begin{lem}\label{lem:dsp_geq_lp}
+Let $\{X_{\{i, j\}}, Y_i\}$ be an optimal solution to the Linear Program \ref{lp_densest_subg}, having value $v$. Then,
+\begin{equation}
+\exists S \subseteq V\ f(S) \geq v.
+\end{equation}
+\end{lem}
+\begin{proof}
+Things are a little trickier here. In fact, what Lemma \ref{lem:dsp:lem1} states is that our LP's optimum is larger than any possible solution of densest subgraph problem; but then, of course, we don't expect all the DSG solutions to have the same value, so we have to pick a specific one and show it is as good as our LP's. Why did we assume optimality instead of only feasibility? Because we want the LP solution to have the following property.
+
+\begin{equation}\label{eq:dsp_opt_property}
+\forall \{i, j\} \in E\ X_{\{i, j\}} = \min{\{Y_i, Y_j\}}.
+\end{equation}
+\begin{proof}
+Suppose this was not the case, then
+
+\begin{equation}
+\exists X_{\{i, j\}} < \min{\{Y_i, Y_j\}}.
+\end{equation}
+
+But now we can increase the value of $X_{\{i, j\}}$ up to the minimum and so the objective function's value increases. It follows that we didn't have them optimal value (contradiction).
+\end{proof}
+
+ Now we proceed with the Lemma's proof, due to Moses S. Charikar. Let
+ \begin{align}
+     S(r) &= \{ i : Y_i \geq r\},\\
+     E(r) &= \{ \{i, j\} : X_{\{i, j\}} \geq r\}.
+ \end{align}
+ 
+ We are defining a parametric set, that contains all the nodes $i$ such that $Y_i \geq r$ in the optimal solution. $S(0)$ contains all the nodes but, as $r$ increases, the number of nodes included becomes smaller and smaller.
+ 
+\begin{claim}
+	\begin{equation}
+	\forall r,\ 0 \leq r \leq \max{\{Y_i\}},\ \{i, j\} \in E(r) \Longleftrightarrow \{i, j\} \subseteq S(r).
+	\end{equation}
+\end{claim}
+\begin{proof}
+	\begin{align}
+		\{i, j\} \in E(r) &\implies X_{\{i, j\}} \geq r\\
+		& \implies \min{\{Y_i, Y_j\}} \geq r \tag{Equation \ref{eq:dsp_opt_property}}\\
+		& \implies Y_i \geq r \wedge Y_j \geq r\\
+		& \implies \{i, j\} \subseteq S(r).
+	\end{align}
+	Now the other direction.
+	\begin{align}
+	\{i, j\} \subseteq S(r)&\implies r \leq X_{\{i, j\}} = \min{\{Y_i, Y_j\}}\tag{Equation \ref{eq:dsp_opt_property}}\\
+	& \implies \{i, j\} \in E(r).
+	\end{align}
+\end{proof}
+
+No matter which $r$ we pick, it will select a set of nodes and also all the edges induced by that set of nodes. Let's look at the following integral.
+
+\begin{align}
+\int_0^{\max{\{Y_i\}}} |S(r)|dr &= \sum_{i=1}^n \int_0^{Y_i} 1 dr\\
+&= \sum_{i=1}^n Y_i.
+\end{align}
+Let's do the same for the edges.
+
+\begin{align}
+\int_0^{\max{\{X_{\{i,j\}}\}}} |E(r)|dr &=  \sum_{\{i, j\} \in E} \int_0^{X_{\{i,j\}}} 1 dr\\
+&= \sum_{i=1}^n X_{\{i, j\}}.
+\end{align}
+
+\begin{claim}
+	\begin{equation}
+	\exists r\ r \in [0, \max{\{Y_i\}}] \text{ s.t. } |E(r)| \geq v|S(r)|.
+	\end{equation}
+\end{claim}
+Making this claim actually means saying that 
+\begin{equation}
+ f(S(r)) = \frac{|E(r)|}{|S(r)|} \geq v,
+\end{equation}
+thus, for at least one value $r$, we have a DSG value that is at least $v$, what we wanted to prove.
+
+\begin{proof}
+	We proceed by contradiction. Assume that
+	\begin{equation}
+	\forall r\ r \in [0, \max{\{Y_i\}}] \text{ s.t. }  |E(r)| < v|S(r)|.
+	\end{equation}
+	Then,
+	\begin{align}
+	\int_0^{\max{\{Y_i\}}}|E(r)| dr &< v\int_0^{\max{\{Y_i\}}}|S(r)| dr\\\
+	&\implies\\
+		\sum_{\{i, j\} \in E} X_{\{i, j\}} &< v \sum_{i = 1}^n Y_i\\
+	\end{align}
+	
+	By optimality of the LP solution it is true that
+	\begin{equation}
+	\sum_{i = 1}^n Y_i = 1\ \wedge\ 	\sum_{\{i, j\} \in E} X_{\{i, j\}} = v.
+	\end{equation}
+	
+	It follows a contradiction, $ v < v$.
+\end{proof}
+At this point we have proved Lemma \ref{lem:dsp_geq_lp} and, more importantly, that the LP we gave finds the exact optimal solution for the Densest Subgraph problem.
+\end{proof}
+
+As a side note, in this proof we used integrals to avoid to sum over all the possible values of the $Y_i$s. How can we actually find the set $S$ given the LP's optimal value $v$? How many candidate sets there can be? In principle infinitely many, but the only ones that matter are given by $r \in \{Y_i : 1 \leq i \leq n\}$ (because of how $S(r)$ is defined). So we try all the $n$ possible values of $r$ and pick the best.
+
+\section{A greedy approach to the Densest Subgraph problem}
+
+In the previous section the Densest Subgraph Problem was solved using linear programming. That approach, however, is pretty inefficient, since solving a LP requires a running time of $O(n^{3.5})$. Here, we explore a greedy algorithm to approximate the optimal solution. Let's recall the problem formulation. A graph $G(V, E)$ and the density function $f(S) = \frac{|E(S)|}{|S|}$ are given. We would like to find a set $S \subseteq V$ such that
+
+\begin{equation}
+S = \argmax_{S' \subseteq V} f(S').
+\end{equation}
+
+The greedy algorithm we will analyze is the following.
+
+\begin{algorithm}
+	\textbf{Input: } $G=(V, E)$\\
+	$S_0 \gets V$\;
+	\For{$i=0,\ldots,|V|-1$}{
+		$w_i \gets$ node with minimum degree in the graph induced by $S_i$\;
+		$S_{i+1} \gets S_i - \{w_i\}$\;
+	}
+	\Return  $\argmax_{S_i} f(S_i)$.
+	
+	\caption{\textsc{dsg-greedy} algorithm to solve the Densest Subgraph Problem.}
+	\label{algo:greedydsp}
+\end{algorithm}
+
+As it can be imagined, this algorithm runs very fast, i.e., in $O(|V| + |E|)$ time. 
+
+\begin{thm}
+	The solution returned by Algorithm \ref{algo:greedydsp} is a 2-approximation to DSG.
+\end{thm}
+
+\begin{proof}
+We will prove the theorem with a combinatorial proof, but it also can be proven using a LP. In order to proceed with the analysis we need to introduce the following definition. 
+
+\begin{defn}
+	An orientation of am undirected graph $G(V, E)$ is a directed graph $D(V, A)$ where the nodes are the same and every edge in $E$ is given an orientation, forming a set of arches $A$.
+\end{defn}
+
+What we want to do now is to bound the quality of the optimal solution in terms of some property of all orientations of the graph $G$. The reason is that the algorithm will be analyzed by making it implicitly select an orientation during its execution. Since we are about to show we can bound the value of the optimal solution to DSG by some function of any orientation, this will allow us to give a bound on the quality of the algorithm.
+\begin{lem}\label{lem:dsg_indeg_lower}
+	If $D(V, A)$ is an orientation (any orientation) of $G(V,E)$ and $d_M$ is the maximum indegree of $D(V, A)$, then,
+	\begin{equation}
+		\forall S\subseteq V\ f(S) \leq d_M.
+	\end{equation}
+\end{lem}
+\begin{proof}
+	This is actually a pretty simple claim to prove. We know that
+	\begin{equation}
+		f(S) = \frac{|E(S)|}{|S|}
+	\end{equation}
+	and
+	\begin{align}
+		|E(S)| &\leq \sum_{v \in S} \indeg_D(v)\\
+		&\leq\sum_{v \in S}d_M\\
+		& = d_M |S|.
+	\end{align}
+	
+	Why this is true? Pick any $S$, there will be some edges is $S$ and each edge will be oriented in exactly one way. So, every edge $E(S)$ will be an arch that enters in some node in $S$, and therefore it will be counted. The fact is, if we sum up the indegrees, we will be also counting arches in the oriented graph $D$ that come from nodes outside $S$ to nodes in $S$. We assumed $d_M$ is the maximum indegree in $D$, so we can upper bound every other indegree with that value.
+	
+	Dividing by $|S|$ we obtain
+	\begin{equation}
+	f(S) = \frac{|E(S)|}{|S|} \leq d_M.
+	\end{equation}
+\end{proof}
+We will be creating an orientation as the algorithm progresses. At the beginning no edge is directed towards anything. Then, when we remove a node $w_i$, all the edges incident in $w_i$ and that are still in the graph will be oriented towards $w_i$. The algorithm doesn't care about orientations, but we will use this concept in the proof. Let the $D(V,A)$ be the resulting orientation of $G(V,E)$.
+
+Remember, our goal is to study the quality of the $S_i$ having maximum density. Therefore, we are going to study the quality of $S_i$ with respect to the indegree of the $w_i$ we removed (from $S_i$). The indegree of $w_i$ with respect to $D$ is the degree of $w_i$ in $S_i$. This is because we are picking the node $w_i$ with minimum degree in $S_i$ and we are directing all the edges in $E(S_i)$, incident on $w_i$, towards that node. And since we are picking the node with minimum degree we can state that, $\forall i \in \{0,\ldots, |V|-1\}$,
+\begin{align}
+\indeg_D(w_i) &= \deg_{S_i}(w_i)\\
+&= \min_{v \in S_i}\deg_{S_i}(v) \\
+&\leq \avg_{v \in S_i}\deg_{S_i}(v) \\
+&=\frac{1}{|S_i|}\sum_{v \in S_i}\deg_{S_i}(v)\\
+&=2\frac{|E(S_i)|}{|S_i|} = 2f(S_i).
+\end{align}
+
+What we have proved is that the indegree in D of $w_i$ is at most twice the density in $S_i$. Why do we care? Because we have Lemma \ref{lem:dsg_indeg_lower} that gives us the lower bound for the maximum indegree, which is the density, for any set. So what we are going to do is to sandwitch the optimal density first by $w_i$'s degree and finally by the density of one of the set we created.
+
+Let $i^\star$ be an index maximizing $\indeg(w_{i^\star})$. If $S^\star$ is the optimal solution then
+\begin{equation}
+	f(S^\star) \leq \indeg_D(w_{i^\star}) \leq 2f(S_{i^\star}) \implies f(S_{i^\star}) \geq \frac{1}{2}f(S^\star).
+\end{equation}
+\end{proof}	
+
+The reason we care about this algorithm is that it can be run efficiently, precisely in time $O(|E|)$.
+
+
+Remember that an LP has a primal and dual, and the dual gives an upper bound to the primal. What we did is to fix the solution of the dual which in this case was a given orientation. Then we compared the solution of greedy with the dual, analyzing the gap.
+
+\section{Parallel version of dsg-greedy}
+
+We now have a linear algorithm to approximate the DSG solution. Being linear in a graph with billion of nodes is still unfeasible, though. People have tried to improve this algorithm under the assumption that there is a cluster of computers each of which is computing towards finding the best solution.
+
+The first observation is do we really need $w_i$ to be the node with minimum degree? Or can we be less strict in choosing $w_i$? If you look at the previous proof, we used the minimum degree value but right after we upper bounded it with the average degree. In fact the algorithm could have picked a node with degree less or equal to the average degree and the proof still would have worked. This observation is the key observation we can use the running time, since we don't have to look for the minimum degree at every step, but we can look for something which is much easier to get. It is a bit hard to give the intuition of why the minimum degree is harder than to find than the average, but you can sort of imagine it in this way. By Markov Inequality, if we pick at random one node in the graph, the probability that it will have a degree which is less or equal the average degree times a 1.01 is at least a constant. The node of minimum degree will be hidden somewhere while there are many nodes with degree slightly larger than the average, we would lose some constant, but we can make that constant as small as we want.
+
+Studying such an algorithm is going to be a bit more complicated 
+\begin{algorithm}
+	\textbf{Input:} $G(V, E)$\\
+	$S_0 \gets V$\;
+	$i \gets 0$\;
+	
+	\While{$S_i \neq \emptyset$}{
+		$A(S_i) \gets \{ v : v \in S_i \wedge \deg_{S_i}(v) \leq (1 + \varepsilon)\avg_{w_i \in S_i}\deg_{S_i}(w_i)\}$\;
+		$S_{i+1} = S_i / A(S_i)$\;
+		$i \gets i + 1$\;
+	}
+	\Return the ``best'' $S_i$
+	\vspace{15pt}
+	\caption{\textsc{quick-greedy} algorithm for densest subgraph problem.}
+	\label{algo:dsg_quick}
+\end{algorithm}
+
+In Algorithm \ref{algo:dsg_quick} we pick as many nodes as we can because we want to finish quickly. The algorithm is almost the same as the precedent one; in this case we don't care about minimum degree but the average is enough, and if we go slightly above the average we believe it is acceptable (we lose a small constant in the approximation). 
+
+\begin{thm}
+	Algorithm \textsc{quick-greedy} will return a $(2 + 2\varepsilon)$ approximation and also will run for at most $O\left(\frac{1}{\varepsilon}\log(n)\right)$ iterations.
+\end{thm}
+\begin{proof}
+	
+	Let $S^\star$ be an optimal solution.
+	
+	\begin{claim}\label{clm:dsg:den_minor_deg}
+		\begin{equation}
+		\forall v \in S^\star\ \deg_{S^\star}(v) \geq f(S^\star).
+		\end{equation}
+	\end{claim}
+	It is a pretty intuitive claim. If we have a node in the optimal solution that has a degree less than the average degree, we can remove that node to increase the quality of the solution.
+	\begin{proof}
+	By contradiction, suppose $\exists v \in S^\star\ \deg_{S^\star}(v) < f(S^\star)$.
+	
+	\begin{align}
+	f(S^\star - \{v\}) &= \frac{|E(S^\star - \{v\})|}{|S^\star| - 1} \\
+		&= \frac{|E(S^\star)| - \deg_{S^\star}(v)}{|S^\star| - 1}\\
+		&\geq \frac{E(S^\star) - f(S^\star)}{|S^\star| - 1}\\
+		&= \frac{E(S^\star)}{|S^\star|} \frac{|S^\star|}{|S^\star| - 1} - \frac{f(S^\star)}{|S^\star| - 1}\\
+		&= f(S^\star)\left(\frac{|S^\star|}{|S^\star| - 1} - \frac{1}{|S^\star| - 1}\right) = f(S^\star).
+	\end{align}
+	
+	So $S^\star$ is not the optimal solution (contradiction).
+\end{proof}
+Before going any further, let's assure that the algorithm terminates. Observe that $A(S_i)$ is always not empty because there will be always some node with degree less than or equal to the average degree. It follows that at every iteration we remove at least one node.
+
+Now we want to show that there exists one iteration where the quality of the solution in that iteration is a good approximation to the optimal quality. In the previous proof [insert link] we knew that that iteration existed because we knew in at least one iteration the node we would remove had the maximum indegree in the orientation. Here we don't have orientation, so we need to argue differently. 
+
+Fix an optimal solution $S^\star$. Let $i^\star$ be the first integer such that \textsc{quick-greedy} removes some element of the optimal solution $S^\star$ from $S_{i^\star}$ (to get $S_{i^\star + 1}$). Notice that there must be such $i^\star$. Formally,
+
+\begin{equation}
+	|A(S_{i^\star}) \cap S^\star| \geq 1\ \wedge\ \forall j < i^\star\ |A(S_j) \cap S^\star| = 0
+\end{equation}
+
+It follows that $S^\star \subseteq S_{i^\star}$. Let $v$ be a node in $A(S_{i^\star}) \setminus S^\star$. Then
+\begin{align}
+	f(S^\star) &\leq \deg_{S^\star}(v) \tag{Claim \ref{clm:dsg:den_minor_deg}}\\
+	&\leq \deg_{S_{i^\star}}(v)\\
+	&\leq (1 + \varepsilon)\avg_{v \in S_{i^\star}}\deg_{S_{i^\star}}(v)\\
+	&=(1 + \varepsilon)2\frac{|E(S_{i^\star})|}{|S_{i^\star}|}\\
+	&=(1 + \varepsilon)2f(S_{i^\star}).
+\end{align}
+We have proven the approximation. What remains to see is that the algorithm finishes in logarithmic many steps. It all depends on the fact that we take out many node at once, in each iteration.
+
+\begin{align}
+2|E(S_i)| &= \sum_{v \in S_i} \deg_{S_i}(v)\\
+&= \sum_{v \in A(S_i)} \deg_{S_i}(v) + \sum_{v \in S_i\setminus A(S_i)} \deg_{S_i}(v)\\
+&\geq \sum_{v \in S_i\setminus A(S_i)} \deg_{S_i}(v)\\
+&\geq \sum_{v \in S_i\setminus A(S_i)} \avg_{w \in S_i}\deg_{S_i}(w)\\
+&=|S_i \setminus A(S_i)|(1 + \varepsilon) \avg_{w \in S_i}\deg_{S_i}(w)\\
+&=|S_i \setminus A(S_i)|(1 + \varepsilon) 2\frac{|E(S_i)|}{|S_i|}.
+\end{align}
+
+It follows that
+
+\begin{align}
+&2|E(S_i)| \geq |S_i \setminus A(S_i)|(1 + \varepsilon) 2\frac{|E(S_i)|}{|S_i|}\\
+&\implies 1 \geq (1+\varepsilon) \frac{|S_i \setminus A(S_i)|}{|S_i|}\\
+&\implies \frac{1}{(1+\varepsilon)} \geq  \frac{|S_i \setminus A(S_i)|}{|S_i|}\\
+&\implies \frac{1}{(1+\varepsilon)} \geq  \frac{|S_i| - |A(S_i)|}{|S_i|}\\
+&\implies \frac{1}{(1+\varepsilon)} \geq 1 - \frac{|A(S_i)|}{|S_i|}\\
+&\implies \frac{|A(S_i)|}{|S_i|} \geq 1 - \frac{1}{(1+\varepsilon)}\\
+&\implies \frac{|A(S_i)|}{|S_i|} \geq 1 - \frac{1}{(1+\varepsilon)} = \frac{1 + \varepsilon}{1 + \varepsilon} - \frac{1}{1 + \varepsilon} = \frac{\varepsilon}{1 + \varepsilon}.
+\end{align}
+
+We have proved that the fraction of nodes that are taken out at each iteration is $O(\varepsilon)$.
+
+\begin{obs}
+	\begin{equation}
+		x \leq \frac{1}{2}\ \log(1 + x) = \Theta(x).
+	\end{equation}
+	It can be proven using Taylor series.
+\end{obs}
+
+And since we are taking out a constant fraction at each iteration, the running time is
+\begin{align}
+T(n) &= O\left(\log_{1 + \frac{\varepsilon}{1 + \varepsilon}} |V|\right)\\
+&=O\left(\frac{\log|V|}{\log\left(1 + \frac{\varepsilon}{1 + \varepsilon}\right)}\right) \tag{Assume $\varepsilon \leq \frac{1}{2}$}\\
+&=O\left(\frac{\log|V|}{\frac{\varepsilon}{1 + \varepsilon}}\right)\\
+&=O\left(\frac{\log|V|}{\varepsilon}\right).
+\end{align}
+\end{proof}
+
+If you have a MapReduce cluster you could use the the above explained algorithm to analyze a billion of nodes in 40 iterations or so, meaning that it is pretty efficient. The way it was written down here forces it to remember all the candidates $S_i$. After we compute $S_{i+1}$, it could check what is the best set between $S_i$ and $S_{i+1}$ and keep the one with higher density.
