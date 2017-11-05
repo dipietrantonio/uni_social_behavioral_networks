@@ -1,0 +1,105 @@
+\chapter{Clustering}
+
+In this chapter we present \emph{clustering algorithms}, that is, algorithms that group together similar data items given a dataset and a metric.
+
+\begin{defn}[Metric]
+	Given a set $\mathcal{X}$, a \emph{metric} (or distance) $d:\mathcal{X} \times \mathcal{X} \rightarrow \mathcal{R}$ is a function that has the following properties:
+	\begin{enumerate}
+		\item $\forall i, j \in \mathcal{X}\ d(i, j) \geq 0$.
+		\item $i, j \in \mathcal{X}\ d(i, j) = 0 \Longleftrightarrow i = j$.
+		\item $d(x, y) \leq d(x, z) + d(y, z)$ (triangle inequality).
+	\end{enumerate} 
+\end{defn}
+
+In clustering problems a metric is a measure of \emph{similarity} between two data items.
+
+\section{The k-center problem}
+
+In this section we consider the $k$-center problem \cite{desappralgo}. Given as input an undirected graph $G(V, E)$, a metric $d$, defined as the distance between any two vertices in the graph, and an integer $k$, the goal is to find $k$ clusters that group similar vertices together such that the maximum distance between a vertex and its cluster center is minimized. The corresponding geometric intuition is that we are trying to find the set of $k$ balls with the minimum radius $r$ which allow them to cover all the space. Formally, we can define the distance between a vertex $i$ and a set $S \subseteq V$ as
+\begin{equation}
+	d(i, S) = \min_{v \in S} d(i, v).
+\end{equation}
+
+Intuitively, each vertex $i$ is associated to the center which is closest. Therefore, given a set $S$, which can be though as the set of centers, the minimum radius all the balls must have to cover the space is
+\begin{equation}
+	r = \max_{v \in V} d(v, S).
+\end{equation}
+
+In other words, the radius must be at least as the maximum distance between a vertex and the closest cluster center.
+
+The following algorithm is a greedy solution which attempts to find the set $S$ of $k$ centers which minimizes $r$.
+
+\begin{algorithm}
+	\textbf{Input:} A graph $G(V, E)$, a metric $d$.
+	
+	$S \gets \{ i \}$, $i \in V$\;
+	\While{$|S| < k$}{
+		$ x \gets \argmax_{v \in V\setminus S}d(v, S)$\;
+		$S \gets S \cup \{x\}$\;
+	}
+\Return $S$
+\caption{\textsc{k-center-greedy} algorithm.}
+\label{algo:kcenteralgo}
+\end{algorithm}
+\begin{thm}
+
+	The \textsc{k-center greedy} algorithm (Algorithm \ref{algo:kcenteralgo}) gives a 2-approximation of the optimal solution.
+	
+\end{thm}
+\begin{proof}
+Let $S^\star \subseteq V$ be an optimal solution with radius $r^\star$. Assign each vertex $v \in V$ to one of the closest points in $S^\star$. Let $\{C(s_i^\star)\}_{s_i^\star \in S^\star}$ be the resulting clustering. Finally, denote with $S$ the final solution of the greedy algorithm
+
+\begin{lem}\label{lem:kcenter2rstar}
+	\begin{equation}
+	\forall x \in S^\star,\ \forall y, z \in C(x)\ d(y, z) \leq 2r^\star.
+	\end{equation}
+\end{lem}
+
+\begin{proof}
+	By triangle inequality,
+	\begin{align}
+		d(y, z) &\leq d(x, y) + d(x, z)\\
+		&\leq 2r^\star.
+	\end{align}
+\end{proof}
+
+We will split the analysis in two cases.
+
+\begin{itemize}
+	\item Suppose that $\forall x \in S^\star, C(x) \cap S \neq \emptyset$. Pick any $y \in C(x)$. By assumption, $\exists s \in S\  s \in C(x)$. It follows that  $d(y, s) \leq 2r^\star$.
+	\item Suppose now that $\exists x \in S^\star C(x) \cap S = \emptyset$. Then, by the pigeonhole principle, $\exists x' \in S^\star\ |C(x') \cap S| \geq 2$. Let $y, y' \in C(x') \cap S,\ y \neq y'$. Suppose $y$ was added to $S$ by the algorithm before $y'$. Let $S'$ be the set of points that greedy selected before $y'$. Pick  any $z \in V$.
+	
+	\begin{align}
+		d(z, S) &\leq d(z, S') \tag{since $S' \subseteq S$}\\
+		&\leq d(y', S') \tag{greedy choice}\\
+		&\leq d(y, y') \tag{since $y \in S'$}\\
+		&\leq 2r^\star \tag{by Lemma \ref{lem:kcenter2rstar}}.
+	\end{align}
+\end{itemize}
+
+So we have proved the 2-approximation.
+\end{proof}
+ Can we hope to do better? The following theorem says that the approximation is optimal if $P\neq NP$.
+\begin{thm}
+	Proving a $(2-\varepsilon)$-approximation to the $k$-center problem is NP-hard.
+\end{thm}
+\begin{proof}
+	We will show a reduction from the \emph{Dominating Set Problem}, which is NP-hard. In the dominating set problem, we have a graph $G(V, E)$ and an integer $k$ and we want to find a set $S \subseteq V$ of size $k$ such that for every node  $w$ in $V$, $w \in S$ or $w$ has a neighbor in $S$.
+	
+	\begin{defn}[$(1,2)$-metric]
+		A $(1,2)$-metric is a function $d:V\times V \rightarrow \{1, 2\}$ such that 
+		$$d(w, v) \in \{1, 2\}\ \forall v, w \in V \wedge w \neq v.$$
+	\end{defn}
+	
+	Now we show the reduction. The set of points is always $V$. The metric is $d$ such that
+	\begin{equation}
+		d(u, v) = \begin{cases}
+		1 & \text{if $u$ and $v$ are neighbors,}\\
+		2 & \text{otherwise.}
+		\end{cases}
+	\end{equation}
+with the convention that $d(v, v) = 0$. Given an instance of dominating set, we build the $k$-center instance. There is a dominating set of size $k$ if and only if the optimal radius for the $k$-center instance is $k$. Furthermore any $(2 -\varepsilon)$ approximation algorithm must always produce a solution or radius $1$, since the distance can be either $1$ or $2$.
+\end{proof}
+
+\section{k-median problem}
+[MISSING]
