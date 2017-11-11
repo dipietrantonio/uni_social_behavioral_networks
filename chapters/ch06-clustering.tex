@@ -67,7 +67,7 @@ We will split the analysis in two cases.
 
 \begin{itemize}
 	\item Suppose that $\forall x \in S^\star, C(x) \cap S \neq \emptyset$. Pick any $y \in C(x)$. By assumption, $\exists s \in S\  s \in C(x)$. It follows that  $d(y, s) \leq 2r^\star$.
-	\item Suppose now that $\exists x \in S^\star C(x) \cap S = \emptyset$. Then, by the pigeonhole principle, $\exists x' \in S^\star\ |C(x') \cap S| \geq 2$. Let $y, y' \in C(x') \cap S,\ y \neq y'$. Suppose $y$ was added to $S$ by the algorithm before $y'$. Let $S'$ be the set of points that greedy selected before $y'$. Pick  any $z \in V$.
+	\item Suppose now that $\exists x \in S^\star\ C(x) \cap S = \emptyset$. Then, by the pigeonhole principle, $\exists x' \in S^\star\ |C(x') \cap S| \geq 2$. Let $y, y' \in C(x') \cap S,\ y \neq y'$. Suppose $y$ was added to $S$ by the algorithm before $y'$. Let $S'$ be the set of points that greedy selected before $y'$. Pick  any $z \in V$.
 	
 	\begin{align}
 		d(z, S) &\leq d(z, S') \tag{since $S' \subseteq S$}\\
@@ -101,5 +101,246 @@ So we have proved the 2-approximation.
 with the convention that $d(v, v) = 0$. Given an instance of dominating set, we build the $k$-center instance. There is a dominating set of size $k$ if and only if the optimal radius for the $k$-center instance is $k$. Furthermore any $(2 -\varepsilon)$ approximation algorithm must always produce a solution or radius $1$, since the distance can be either $1$ or $2$.
 \end{proof}
 
-\section{k-median problem}
-[MISSING]
+In many cases we are not bound to choose the centers in the set of points you are trying to cluster. Think of a set of points disposed as a circle In the euclidian space. If one wants to pick one center with the restriction that it must be part of the metric, any of them will do. But if you could pick the center (which is outside the subset of points chosen) then you could cover every point with minimal cost. In general, there is a set of points $V$ we want to cover and another set $W$ which is the set of points we can use as centers. In light of this, we can give another, more general, definition of the $k$-center problem. Given a metric space $V$ and $W \subseteq V$. The goal is to find a set of center $\mathcal{C} \subseteq V$ such that:
+
+\begin{equation}
+	\mathcal{C} = \argmin_{C \in \binom{V}{k}} \max_{w \in W} \min_{c \in C}d(w, c).
+\end{equation}
+
+If we force the centers to be chosen in $W$, we get back to the previous formulation. In fact, people usually try to solve the less strict problem and then claim that it is a constant approximation to the optimal solution for the stricter version of k-center. For simplicity, assume that we are trying to find only one center. Further, suppose that 
+
+\begin{equation}
+\mathcal{C^\star} = \{c^\star\} \leq V,\ c^\star \in V.
+\end{equation}
+
+If the optimal center is in $V$, then how much would we pay if we were to substitute that optimal center with another one in $W$ (so that we are back to the stricter case).
+
+What we want to claim is that the cost of the optimal solution or, in general, of picking a center in $V$ is not that smaller than the one we would have if we had to pick a node inside $W$.
+\begin{lem}
+	\begin{equation}
+	\max_{w \in W} d(w, c^\star) \geq \max_{\{w_1, w_2\} \in \binom{W}{2}} \frac{d(w_1, w_2)}{2}.
+	\end{equation}
+\end{lem}
+\begin{proof} By triangle inequality we can state that
+	\begin{equation}
+	d(w_1, c^\star) + d(c^\star, w_2) \geq\max_{\{w_1, w_2\} \in \binom{W}{2}} d(w_1, w_2).
+	\end{equation}
+	It follows that
+	\begin{align}
+	\max_{\{w_1, w_2\} \in \binom{W}{2}}d(w_1, w_2) &\leq \max_{w \in W} d(w, c^\star) + \max_{w \in W}d(w, c^\star)\\
+	& =2\max_{w \in W}d(w, c^\star).
+	\end{align}
+Finally, divide both sides by 2.
+\end{proof}
+
+So any point in $W$, picked as center, will give a 2 approximation of the optimal center. This is true for one center. What about $k$ centers? 
+
+\section{The $k$-median problem}
+
+Let's introduce k-median problem. As usual, given a metric space $(V, d)$ we are looking for the best $k$ centers, but now we care about minimizing the sum of the distances. Formally, the solution the $k$ median problem is a set of centers $C$ such that
+
+\begin{equation}\label{eq:kmediandef}
+	\min_{C \in \binom{V}{k}} \sum_{v \in V}\min_{c \in C}d(v, c) \leq \delta.
+\end{equation} 
+
+Intuitively, the objective is to minimize the average distance of the points to the closest center. Why average? If we multiply Inequality \ref{eq:kmediandef} by $\frac{1}{|V|}$ the sum becomes an average. One issue with the $k$ center is that it is sensible to outliers, which may affect too much the choice of centers; taking the average mitigates the problem.
+
+The algorithm $k$-median admits a $(3+\varepsilon)$ in polynomial time. This algorithm uses a local search starting from $k$ points; then for each point in the current set and for each point outside the current set, swap the two points and see the resulting improvement. If the cost decreases, the swap is confirmed. In fact, to get the $(3 + \varepsilon)$ approximation, it is necessary to look not at a single point swap, but at a $\frac{1}{\varepsilon}$ points swap. We are not going to look at the algorithm, but the one question about $1$-median we are talking about, does something like the reduction to $W =V$ to $W \subseteq V$ holds for k-median as well (not so strong though). So, what happens for $1$-median?
+
+
+Suppose $c^\star$ is the optimal solution from the larger metric $V$.
+\begin{equation}
+\sum_{w \in W} \min_{c \in \{c^\star\}} d(w, c) = \sum_{w \in W} d(w, c^\star) = \opt.
+\end{equation}
+
+For $1$-center, any point in $w$ would have been enough to approximate the solution. For $1$-median, the claim is different.
+
+\begin{thm}
+ If $w$ is chosen uniformly at random from $W$, then the expected $1$ median cost of $w$ is at most $2\opt$.
+\end{thm}
+
+\begin{proof}
+	Pick a bunch of points from $W$, say $\frac{1}{\varepsilon}$, we will know that high probability at least one of them give us a $(2 + \varepsilon)$ approximation. We don't have to look at all the points in $W$, but constantly many, and get an approximation which is arbitrarily close to 2. The approximation gets better as the number of points picked grows. Let's see what is the cost of picking a random $w$ as a center
+	\begin{align}
+		E[\text{1-median cost of w}] &= \frac{1}{|W|}\sum_{w \in W}\sum_{w' \in W} d(w, w')\\
+		&= \frac{2}{|W|}\sum_{\{a, b\} \in \binom{W}{2}}d(a, b)\\
+		&\leq \frac{2}{|W|}\sum_{\{a, b\} \in \binom{W}{2}}(d(a, c^\star) + d(c^\star, b)).
+	\end{align}
+	
+	How many times we are considering $d(x, c^\star)$, $x \in W$? $|W| - 1$ times.
+	
+	\begin{align}
+	\frac{2}{|W|}\sum_{\{a, b\} \in \binom{W}{2}}(d(a, c^\star) + d(c^\star, b)) &= 	\frac{2}{|W|}(|W| -1)\sum_{x \in W}d(x, c^\star)\\
+		&=\frac{2}{|W|}(|W| -1)\opt\\
+		&=\left(2 - \frac{2}{|W|}\right)\opt.
+	\end{align}
+\end{proof}
+
+And so again we have a simple algorithm that given a cluster will find one approximate one median for that cluster. Just pick some random point in the cluster. One could ask if this is tight. What we said is if we pick one point from $w$ the quality decrease buy that factor. It is tight. Think of a star graph, and consider the shortest path metric. $V$ is the full set of nodes, while $W \subseteq V$ is the set of leaves; if we can choose $c^\star$ to be the root node, then
+
+\begin{equation}
+\sum_{w \in W} d(w, c^\star) = |W|.
+\end{equation} 
+
+Now suppose $c^\star \in W$. Then what could happen is that we would have
+
+
+\begin{equation}
+\sum_{w' \in W} d(w, w') =2(|W| - 1)
+\end{equation} 
+
+If we take the ratio then we get the bound. So this algorithm gives us a way to approximate a $1$-median given a set of points. Just pick a random point. On expectation it is a 2approximation.
+
+ What we would like to prove now is a different type of tightness for $1$-center to stress the difference between clustering a bunch of points in the metric and clustering all the points in the metric. Last time we have proved that for $k$ center we have proved a tight $2$-approximation. How hard $1$ center is? By just looking at the definition we know that it is solvable in $O(|V|^2)$. More in general, if $k$ is a constant, then the problem is solvable in polynomial time. What about the problem of clustering $W\subset V$? If you want to be polynomial in $W$? Any point from $W$ would give us a $2$ approximation, by 1 center reduction. We will prove it is an optimal approximation. This claim seems simple but it is not. Proving something it is NP hard requires defining which metric we are looking at and also if we want to prove in terms of size of point and not metric, it means metric given implicitly, because we want the algorithm be polynomial in $W$ and we know we can be polynomial in $|V|$ (try all the possible centers). The reduction is the following.
+ 
+ 3SAT. $$ \mathcal{C} \subseteq \binom{\{x_1, x_2, \ldots, x_n,\overline{x_1},\overline{x_1},\ldots, \overline{x_n}\}}{3}$$
+ we ask if there exists an assignment of variables that guarantees that $\forall C \in \mathcal{C}$ at least one literal in C is true.
+ 
+ Produce a distance, which is a metric, and for which there exist a good solution implies the formula is satisfiable if the solution has a large cost. How do we do it? first of all, our $W$ will contain one point of the metric for each clause. 
+ 
+ $C_1, C_2, C_n$, $W$ will contain one point for each $C$. We are going to define the distance between any two close points will be $2$. Now we want to implicitly a metric wich will have exp size and for which if the formula is satidfiable then the point in metric wich is  distance 1 from all clauses and the formulat not satistf any point in cluase is at dsitanc2 from some matric.
+
+
+\section{Correlation Clustering}
+
+Correlation clustering (abbreviated as CC) provides a method for clustering a set of objects into the optimum number of clusters without specifying that number in advance. Instead, given two objects $v, v'$ an \emph{oracle} will tell us if they are similar or not. In practice, you can think of a \emph{classifier} that takes as input two objects and returns $+1$ if they are similar, or $-1$ if they are not. We can model this scenario as a graph $G=(V, E^+, E^-)$, such that $E^+ \cap E^- = \emptyset$, $E^+ \cup E^- = \binom{V}{2}$, where there is a positive edge between two nodes if they are similar, a negative edge if they are dissimilar. Note that in the version of CC that we are going to expose the graph is complete, that is, we always know if two nodes are similar or not.
+
+The result of the clustering operation is a partition $P$ of $V$, where the cost of $P$ is equal to the number of edges of $E^+$ that are split by $P$, plus the number of edges of $E^-$ that are not. This is because we want the positive edges to stay inside clusters, and negative edges to exists only between clusters. The problem is to find a partition of $V$ of minimum cost. We are going to show that there exists a $3$-approximation for it.
+
+If we have a problem whose cost can shrink to zero, then we have to show that zero cost instances can be solved in polynomial time; otherwise, no approximation is possible. Why is the case we can easily solve zero cost instances? For an instance to have cost zero, you can partition the node such that all positive edges are inside the cluster and all the negative edges are between the cluster. If this is the case, we just pick one node and its positive neighbors and create a cluster. Repeat the operation until no node is left.
+
+The algorithm we present is the following.
+\begin{algorithm}
+	\textbf{Input}: $G$, a fully connected graph.\\
+	$\mathcal{C} \gets \emptyset$\;
+	\While{$V \neq \emptyset$}{
+		Pick $v \in V$ uniformly at random\;
+		$C \gets \{v\} \cup \{w | w \in V \wedge \{v, w\} \in E^+\}$\;
+		$\mathcal{C} \gets \mathcal{C} \cup \{C\}$\;
+		$ V \gets V\setminus C$\;
+	}
+	\Return $\mathcal{C}$\;
+	\caption{\textsc{greedy-cc} algorithm.}
+\end{algorithm}
+
+We said that the algorithm \textsc{greedy-cc} returns a 3 approximation. In fact, we will prove something slightly weaker.
+
+\begin{thm}
+	\begin{equation}
+	E[\textit{cost of \textsc{greedy-cc}}] \leq 3\opt
+	\end{equation}
+\end{thm}
+
+This is a pretty impressive claim; to see what are scenarios where the algorithm fails let's look at the following cases. Consider a star graph with $v_1$ as root and $v_2, \ldots, v_n$ as leaves. The node $v_1$ is connected to the other nodes via positive edges; all the other node pairs have negative edges between them. We call \emph{pivot} the current node selected by the algorithm. If we pick $v_1$ as first pivot, we will create a single cluster with all the nodes. But the cost is pretty large, in fact quadratic. If we pick $v_2$ as pivot, then the algorithm creates a cluster containing only $v_2, v_1$. All the positive edges go away, and the remaining nodes will form singleton clusters. Here the cost is $n - 2$. There is a big gap between the two possible runs of the algorithm. If the probability of selecting a bad node is high, the algorithm won't work. But, in this case, what is the probability of picking $v_1$ as pivot?. Since every other node can take away $v_1$, the optimal solution will be chosen with probability $1- \frac{1}{n}$. What we want to prove is that the chance of picking a bad solution is small.
+
+Studying this algorithm is hard because a single choice will change what you have to do in the next step. If you think about the Kleinberg model [reference here], we wanted to show that we get to the destination in $\log^2n$ many steps. The idea there was ``well, if we are on a given node there is a small chance, $\frac{1}{\log n}$, to make the right jump and get closer to the destination. If we do that, then great, we are closer to the destination; if we don't, it's fine because at the next step we will have another chance''. It is not the case here. But still, this thing works out.
+
+\begin{proof}
+	Define $\text{Cost}_i^-$ to be the number of negative edges inside cluster $i$ and $\text{Cost}_i^+$ to be the number of positive edges from cluster $i$ to cluster $j$, $j >  i$. Then, we can define
+	
+	\begin{equation}
+	\text{Cost}_i = \text{Cost}_i^- + \text{Cost}_i^+.
+	\end{equation}
+Notice that in this way we partition the cost among clusters.
+	\begin{lem}
+		\begin{equation}
+		\sum_i \text{Cost}_i = \text{Cost of the greedy solution.}
+		\end{equation}
+	\end{lem}
+	\begin{proof}
+		Can be easily seen by the way we defined the cost.
+	\end{proof}
+	We introduce the concept of ``bad triangle''. It is a tool that we will use to upper bound the cost of the algorithm and the cost of the optimal solution. A bad triangle is a triple $B = \{v_1, v_2, v_3\} \in \binom{V}{3}$ such that $|\binom{B}{2} \cap E^-| = 1$. It is ``bad'' because each time we encounter this triple in out solution we have to pay at least one unit of cost.
+	
+	Now we bound the cost in terms of bad triangles.
+	
+	\begin{lem}
+		\begin{center}
+			$\text{Cost}_i$ = $|\{B | B $ is a bad triangle containing the $i$-th pivot, and which is still completely contained in the remaining graph when the $i$-th pivot is chosen.$\}|$. 
+		\end{center}
+	\end{lem}
+	\begin{proof}
+		We know that $\text{Cost}_i = \text{Cost}_i^+ + \text{Cost}_i^-$. Let's look at $\text{Cost}^-_i$ first. It counts the number of negative edges inside a cluster. Each negative edge ${v_i, v_j}$ is added because the $i$-th pivot $v$ has positive links to $v_i$ and $v_j$. It follows that $\{v, v_i, v_j\}$ forms a bad triangle. It is trivial to see that this triangle is counted once.
+		
+		Lets now consider $\text{Cost}_i^+$. There is positive edge between cluster $i$ and cluster $j$, $i < j$, in the following scenario. The $i$-th pivot $v_i$ adds $v$, one of its neighbors, to its cluster; $v$ has also a positive link to the $j$-th pivot. On one hand, between $v_i$ and $v_j$ there is a negative edge, otherwise $v_j$ would be in cluster $i$. On the other, $v_j$ can't add $v$ to its cluster since it has already been picked by $v_i$. So there is the positive link between cluster $i$ and $j$. We have also a bad triangle $\{v_i, v, v_j\}$ centered in $v$. This triangle is counted only in the $i$-th iteration since it is still present in the graph. When iteration $j$ comes, nodes $v, v_i$ have been already taken out. 
+		
+		Remember that the graph is fully connected, and it is the reason why this works.
+	\end{proof}
+	
+	The reason why we introduced the concept of bad triangle is that we do kill a lot of bad triangles  when selecting a pivot, without having to pay for them. This leads to the following corollary.
+	\begin{cor}
+		Let $\mathcal{B}$ be the set of all bad triangles. The expected cost of \textsc{greedy-cc} is the number of bad triangles hit by a pivot when they are still completely in the graph and this is equal to
+		\begin{equation}
+		\sum_{T \in \mathcal{B}}\pr{T \text{ is hit}}.
+		\end{equation}
+	\end{cor}
+	In general, different triangles will have different probabilities. If $\{a, b, c\}$ is a bad triangle, let $T_{\{a,b,c\}}$ be the event that $c$ is chosen as pivot while $\{a, b, c\}$ are still all part of the graph. Because of the random choice of the pivot it is true that
+	
+	\begin{equation}
+	p_{abc} = \pr{T_{\{a,b,c\}}} = p_{acb} = p_{bca}.
+	\end{equation}
+	
+	Define $q_{abc}$ to be $\pr{T_{\{a,b,c\}}}$. The three events (permutations of $a$, $b$ and $c$) are mutually independent, since one excludes the other. The probability that the triangle $\{a,b,c\}$ is hit is equal to $3q_{abc}$.
+	\begin{equation}\label{cc_3approx_eq}
+		E[\text{Cost of \textsc{greedy-cc}}] = 	\sum_{T \in \mathcal{B}}\pr{T \text{ is hit}} = 3\sum_{T \in \mathcal{B}} q_T.
+	\end{equation}
+	
+	Why do we care about $q_T$? As we will see, $3\sum_{T \in \mathcal{B}} q_T$  will actually be 3 times of the solution of the dual of the following LP problem. Equation \ref{cc_3approx_eq} will be a 3 approximation, because the $\opt$ has a cost that is at most the sum of the $q_T$s.
+	
+	Let us now introduce a linear relaxation of the correlation clustering problem.
+	
+	\begin{equation}
+	\text{LP} =\begin{cases}
+	\min \sum_{\{v, w'\} \in \binom{V}{2}} X_{\{v, v'\}}\\
+	X_{\{v, v'\}} + X_{\{v, v''\}} + X_{\{v', v''\}} \geq 1\ \forall \{v, v', v''\} \in \mathcal{B}\\
+	X_{\{v, v'\}} \geq 0.
+	\end{cases}
+	\end{equation}
+	Each variable $X_{\{v, v'\}}$ tells me if the edge $\{v, v'\}$ is wrongly placed. So we want to minimize the number of this kind of edges in the solution. But whatever clustering is, a bad triangle makes us pay at least one.
+	\begin{lem}
+		Lp is a relaxation of cc. In other words, $LP^\star \leq \opt$, where $\opt$ is the correlation clustering optimum.
+	\end{lem}
+	
+	\begin{proof}
+		 The Lemma is true because, whatever the CC optimal solution is, for each pair of nodes in it, the corresponding edge can be either correctly or incorrectly placed.
+		 	
+		\begin{equation}
+		X_{\{v, v'\}} = \begin{cases}
+		1 & \text{if $\{v, v'\}$ has a cost of 1 in } \opt,\\
+		0 & \text{otherwise.}
+		\end{cases}
+		\end{equation}
+		
+		It satisfies the only constraint, since in every solution the cost of every bad triangle is at least one.
+	\end{proof}
+
+	Recall that $\text{DUAL}^\star \leq LP^\star$, if LP is a minimization problem. The dual problem is the following.
+	
+	\begin{equation} \text{DUAL} =
+	\begin{cases}
+	\max \sum_{T \in \mathcal{B}} Y_T\\
+	\sum_{T \in \mathcal{B} : 	\{v, v'\} \subseteq T} Y_T \leq 1 & \forall \{v, v'\} \in \binom{V}{2}\\
+	Y_T \geq 0.
+	\end{cases}
+	\end{equation}
+	
+	Here, we are assigning a weight to each bad triangle so that no edge gets a total weight more than one. 
+	\begin{thm}
+		$Y_T = q_T$ is a feasible solution for the dual with value $\sum_{T \in \mathcal{B}} q_T$.
+	\end{thm}
+
+	\begin{proof}
+		
+		\begin{align}
+		\sum_{T \in B : \{v,v'\} \subseteq T} q_T &= \sum_{v'': \{v,v',v''\} \in \mathcal{B}}q_{vv'v''}\\
+		&=\sum_{v'':\{v,v',v''\} \in \mathcal{B}} p_{vv'v''} \\
+		&=\sum_{v'':\{v,v',v''\} \in \mathcal{B}} \pr{T_{\{v,v',v''\}}}\\
+		& \leq 1.
+		\end{align}
+	\end{proof}
+
+Finally we can claim the following corollary that completes the proof.
+		\begin{cor}
+			$\sum_{T \in \mathcal{B}} q_T \leq \text{DUAL}^\star \leq \text{LP}^\star \leq \opt$.
+		\end{cor}
+	\end{proof}
