@@ -13,9 +13,9 @@ In this chapter we present \emph{clustering algorithms}, that is, algorithms tha
 
 In clustering problems a metric is a measure of \emph{similarity} between two data items.
 
-\section{The k-center problem}
+\section{The $k$-center problem}
 
-In this section we consider the $k$-center problem \cite{desappralgo}. Given as input an undirected graph $G(V, E)$, a metric $d$, defined as the distance between any two vertices in the graph, and an integer $k$, the goal is to find $k$ clusters that group similar vertices together such that the maximum distance between a vertex and its cluster center is minimized. The corresponding geometric intuition is that we are trying to find the set of $k$ balls with the minimum radius $r$ which allow them to cover all the space. Formally, we can define the distance between a vertex $i$ and a set $S \subseteq V$ as
+In this section we consider the $k$-center problem \cite{desappralgo}. Given as input an undirected graph $G=(V, E)$, a metric $d$, defined as the distance between any two vertices in the graph, and an integer $k$. The goal is to find $k$ clusters that group similar vertices together, such that the maximum distance between a vertex and its cluster center is minimized. The corresponding geometric intuition is that we are trying to find the set of $k$ balls with the minimum radius $r$ which allow them to cover all the space. Formally, we can define the distance between a vertex $i$ and a set $S \subseteq V$ as
 \begin{equation}
 	d(i, S) = \min_{v \in S} d(i, v).
 \end{equation}
@@ -42,12 +42,11 @@ The following algorithm is a greedy solution which attempts to find the set $S$ 
 \label{algo:kcenteralgo}
 \end{algorithm}
 \begin{thm}
-
 	The \textsc{k-center greedy} algorithm (Algorithm \ref{algo:kcenteralgo}) gives a 2-approximation of the optimal solution.
-	
 \end{thm}
+
 \begin{proof}
-Let $S^\star \subseteq V$ be an optimal solution with radius $r^\star$. Assign each vertex $v \in V$ to one of the closest points in $S^\star$. Let $\{C(s_i^\star)\}_{s_i^\star \in S^\star}$ be the resulting clustering. Finally, denote with $S$ the final solution of the greedy algorithm
+Let $S^\star \subseteq V$ be an optimal solution with radius $r^\star$. Assign each vertex $v \in V$ to one of the closest points in $S^\star$. Let $\{C(s_i^\star)\}_{s_i^\star \in S^\star}$ be the resulting clustering. Finally, denote with $S$ the final solution of the greedy algorithm.
 
 \begin{lem}\label{lem:kcenter2rstar}
 	\begin{equation}
@@ -84,38 +83,40 @@ So we have proved the 2-approximation.
 	Proving a $(2-\varepsilon)$-approximation to the $k$-center problem is NP-hard.
 \end{thm}
 \begin{proof}
-	We will show a reduction from the \emph{Dominating Set Problem}, which is NP-hard. In the dominating set problem, we have a graph $G(V, E)$ and an integer $k$ and we want to find a set $S \subseteq V$ of size $k$ such that for every node  $w$ in $V$, $w \in S$ or $w$ has a neighbor in $S$.
+	We will show a reduction from the \emph{Dominating Set Problem}, which is NP-hard. In the dominating set problem, we are given a graph $G=(V, E)$ and an integer $k$; the objective is to find a set $S \subseteq V$ of size $k$ such that for every node  $w \in V$, $w \in S$ or $w$ has a neighbor in $S$.
 	
 	\begin{defn}[$(1,2)$-metric]
 		A $(1,2)$-metric is a function $d:V\times V \rightarrow \{1, 2\}$ such that 
 		$$d(w, v) \in \{1, 2\}\ \forall v, w \in V \wedge w \neq v.$$
 	\end{defn}
 	
-	Now we show the reduction. The set of points is always $V$. The metric is $d$ such that
+	 Given an instance of dominating set, we build the $k$-center instance. The set of points is always $V$. The metric is $d$ such that
 	\begin{equation}
 		d(u, v) = \begin{cases}
+		0 & u = v,\\
 		1 & \text{if $u$ and $v$ are neighbors,}\\
 		2 & \text{otherwise.}
 		\end{cases}
 	\end{equation}
-with the convention that $d(v, v) = 0$. Given an instance of dominating set, we build the $k$-center instance. There is a dominating set of size $k$ if and only if the optimal radius for the $k$-center instance is $k$. Furthermore any $(2 -\varepsilon)$ approximation algorithm must always produce a solution or radius $1$, since the distance can be either $1$ or $2$.
+ There is a dominating set of size $k$ if and only if the optimal radius for the $k$-center instance is $1$. Furthermore any $(2 -\varepsilon)$ approximation algorithm must always produce a solution or radius $1$, since the distance can be either $1$ or $2$.
 \end{proof}
 
-In many cases we are not bound to choose the centers in the set of points you are trying to cluster. Think of a set of points disposed as a circle In the euclidian space. If one wants to pick one center with the restriction that it must be part of the metric, any of them will do. But if you could pick the center (which is outside the subset of points chosen) then you could cover every point with minimal cost. In general, there is a set of points $V$ we want to cover and another set $W$ which is the set of points we can use as centers. In light of this, we can give another, more general, definition of the $k$-center problem. Given a metric space $V$ and $W \subseteq V$. The goal is to find a set of center $\mathcal{C} \subseteq V$ such that:
+\subsection{A more general formulation}
+
+In many cases we are not bound to choose centers in the set of points that have to be clustered. Think of a set of points disposed as a circle in the 2D euclidian space as the metric space in input to our $k$-center algorithm. If one wants to pick one center with the restriction that it must be part of the given metric, any of them will do. But if you could pick the center of the circle (which is outside the subset of points chosen) then you could cover every point with minimal cost. In general, there is a set of points $W$ we want to cover and another set $V$ which is the set of points we can use as centers. In light of this, we can give another, more general, definition of the $k$-center problem, call it ``formulation $B$''. Given a metric space $V$ and $W \subseteq V$, the goal is to find a set of center $\mathcal{C} \subseteq V$ such that:
 
 \begin{equation}
 	\mathcal{C} = \argmin_{C \in \binom{V}{k}} \max_{w \in W} \min_{c \in C}d(w, c).
 \end{equation}
 
-If we force the centers to be chosen in $W$, we get back to the previous formulation. In fact, people usually try to solve the less strict problem and then claim that it is a constant approximation to the optimal solution for the stricter version of k-center. For simplicity, assume that we are trying to find only one center. Further, suppose that 
+If we force the centers to be chosen in $W$, we get back to the previous formulation, let us call it formulation $A$. In fact, people usually try to solve a problem by modeling it into formulation $B$ and then claim that the result is a constant approximation to the optimal solution for the formulation $A$ of $k$-center. For simplicity, assume that we are trying to find only one center. Furthermore, suppose that 
 
 \begin{equation}
-\mathcal{C^\star} = \{c^\star\} \leq V,\ c^\star \in V.
+\mathcal{C^\star} = \{c^\star\} \subseteq V,\ c^\star \in V.
 \end{equation}
 
-If the optimal center is in $V$, then how much would we pay if we were to substitute that optimal center with another one in $W$ (so that we are back to the stricter case).
+If the optimal center is in $V$, then how much would we pay if we were to substitute that optimal center with a point in $W$? What we want to claim is that the cost of the optimal solution or, in general, of picking a center in $V$ is not that smaller than the one we would have if we had to pick a node inside $W$.
 
-What we want to claim is that the cost of the optimal solution or, in general, of picking a center in $V$ is not that smaller than the one we would have if we had to pick a node inside $W$.
 \begin{lem}
 	\begin{equation}
 	\max_{w \in W} d(w, c^\star) \geq \max_{\{w_1, w_2\} \in \binom{W}{2}} \frac{d(w_1, w_2)}{2}.
@@ -133,7 +134,7 @@ What we want to claim is that the cost of the optimal solution or, in general, o
 Finally, divide both sides by 2.
 \end{proof}
 
-So any point in $W$, picked as center, will give a 2 approximation of the optimal center. This is true for one center. What about $k$ centers? 
+So any point in $W$, picked as center, will give a 2-approximation of the optimal center. This is true for $1$-center. What about $k$-centers? Well, use the \textsc{k-center-greedy} algorithm for $V = W$; it will returns a bunch of clusters. It is known, for each of them, that the best point in the metric subspace o can give you a 2 approximation so it gives a factor of 4(?)
 
 \section{The $k$-median problem}
 
@@ -146,7 +147,6 @@ Let's introduce k-median problem. As usual, given a metric space $(V, d)$ we are
 Intuitively, the objective is to minimize the average distance of the points to the closest center. Why average? If we multiply Inequality \ref{eq:kmediandef} by $\frac{1}{|V|}$ the sum becomes an average. One issue with the $k$ center is that it is sensible to outliers, which may affect too much the choice of centers; taking the average mitigates the problem.
 
 The algorithm $k$-median admits a $(3+\varepsilon)$ in polynomial time. This algorithm uses a local search starting from $k$ points; then for each point in the current set and for each point outside the current set, swap the two points and see the resulting improvement. If the cost decreases, the swap is confirmed. In fact, to get the $(3 + \varepsilon)$ approximation, it is necessary to look not at a single point swap, but at a $\frac{1}{\varepsilon}$ points swap. We are not going to look at the algorithm, but the one question about $1$-median we are talking about, does something like the reduction to $W =V$ to $W \subseteq V$ holds for k-median as well (not so strong though). So, what happens for $1$-median?
-
 
 Suppose $c^\star$ is the optimal solution from the larger metric $V$.
 \begin{equation}
@@ -191,19 +191,30 @@ Now suppose $c^\star \in W$. Then what could happen is that we would have
 
 If we take the ratio then we get the bound. So this algorithm gives us a way to approximate a $1$-median given a set of points. Just pick a random point. On expectation it is a 2approximation.
 
- What we would like to prove now is a different type of tightness for $1$-center to stress the difference between clustering a bunch of points in the metric and clustering all the points in the metric. Last time we have proved that for $k$ center we have proved a tight $2$-approximation. How hard $1$ center is? By just looking at the definition we know that it is solvable in $O(|V|^2)$. More in general, if $k$ is a constant, then the problem is solvable in polynomial time. What about the problem of clustering $W\subset V$? If you want to be polynomial in $W$? Any point from $W$ would give us a $2$ approximation, by 1 center reduction. We will prove it is an optimal approximation. This claim seems simple but it is not. Proving something it is NP hard requires defining which metric we are looking at and also if we want to prove in terms of size of point and not metric, it means metric given implicitly, because we want the algorithm be polynomial in $W$ and we know we can be polynomial in $|V|$ (try all the possible centers). The reduction is the following.
+What we would like to prove now is a different type of tightness for $1$-center to stress the difference between clustering a bunch of points in the metric and clustering all the points in the metric. Last time we have proved that for $k$ center we have proved a tight $2$-approximation. How hard $1$ center is? By just looking at the definition we know that it is solvable in $O(|V|^2)$. More in general, if $k$ is a constant, then the problem is solvable in polynomial time. What about the problem of clustering $W\subset V$? If you want to be polynomial in $W$? Any point from $W$ would give us a $2$ approximation, by 1 center reduction. We will prove it is an optimal approximation. This claim seems simple but it is not. Proving something  is NP hard requires defining which metric we are looking at and also if we want to prove in terms of size of points and not metric, it means metric given implicitly, because we want the algorithm be polynomial in $W$ and we know we can be polynomial in $|V|$ (try all the possible centers). The reduction is from 3-SAT to 1-median.
  
- 3SAT. $$ \mathcal{C} \subseteq \binom{\{x_1, x_2, \ldots, x_n,\overline{x_1},\overline{x_1},\ldots, \overline{x_n}\}}{3}$$
- we ask if there exists an assignment of variables that guarantees that $\forall C \in \mathcal{C}$ at least one literal in C is true.
- 
- Produce a distance, which is a metric, and for which there exist a good solution implies the formula is satisfiable if the solution has a large cost. How do we do it? first of all, our $W$ will contain one point of the metric for each clause. 
- 
- $C_1, C_2, C_n$, $W$ will contain one point for each $C$. We are going to define the distance between any two close points will be $2$. Now we want to implicitly a metric wich will have exp size and for which if the formula is satidfiable then the point in metric wich is  distance 1 from all clauses and the formulat not satistf any point in cluase is at dsitanc2 from some matric.
-
+ 3-SAT is the problem of finding an assignment of $n$ variables such that a set $\mathcal{C}$  of $m$ clauses,
+ \begin{equation}
+ \mathcal{C} \subseteq \binom{\{x_1, x_2, \ldots, x_n,\overline{x_1},\overline{x_1},\ldots, \overline{x_n}\}}{3},
+ \end{equation}
+  are all satisfied. Now we build a $1$-median instance starting from 3SAT. Define a metric space which contains a point $C_i$ for each clause, and $2^n$ points for each of the truth assignments to the $n$ variables. The distance $d$ associated to the metric space is defined as
+  
+  \begin{equation}
+  d(a, b) = \begin{cases}
+  		2 & a = C_i,\ b = C_j,\ i \neq j\\
+  		2 & \text{if $a$ and $b$ are truth assignments}\\
+		1 & a = C_i,\ \text{$b$ is a truth assignment such that $C_i(b) = true$}\\
+		2 & \text{otherwise} .
+  \end{cases} 
+  \end{equation}
+  
+  The $1$-median instance asks for one point in the metric having an average distance of $1$ from points in $ W = \{C_1, C_2, \ldots, C_m\}$.
+  
+  If there exists a truth assignment to the 3-SAT instance, the associated point in the metric will be at average distance of $1$ from the points in $W$. If there exists a point in the metric at average distance $\leq 1$ from $W$, then that point is a truth assignment with satisfies $\mathcal{C}$.
 
 \section{Correlation Clustering}
 
-Correlation clustering (abbreviated as CC) provides a method for clustering a set of objects into the optimum number of clusters without specifying that number in advance. Instead, given two objects $v, v'$ an \emph{oracle} will tell us if they are similar or not. In practice, you can think of a \emph{classifier} that takes as input two objects and returns $+1$ if they are similar, or $-1$ if they are not. We can model this scenario as a graph $G=(V, E^+, E^-)$, such that $E^+ \cap E^- = \emptyset$, $E^+ \cup E^- = \binom{V}{2}$, where there is a positive edge between two nodes if they are similar, a negative edge if they are dissimilar. Note that in the version of CC that we are going to expose the graph is complete, that is, we always know if two nodes are similar or not.
+Correlation clustering (abbreviated as CC) provides a method for clustering a set of objects into the optimal number of clusters without specifying that quantity in advance. Instead, given two objects $v, v'$ an \emph{oracle} will tell us if they are similar or not. In practice, you can think of a \emph{classifier} that takes as input two objects and returns $+1$ if they are similar, or $-1$ if they are not. We can model this scenario as a graph $G=(V, E^+, E^-)$, such that $E^+ \cap E^- = \emptyset$, $E^+ \cup E^- = \binom{V}{2}$, where there is a positive edge between two nodes if they are similar, a negative edge if they are dissimilar. Note that in the version of CC that we are going to expose the graph is complete, that is, we always know if two nodes are similar or not.
 
 The result of the clustering operation is a partition $P$ of $V$, where the cost of $P$ is equal to the number of edges of $E^+$ that are split by $P$, plus the number of edges of $E^-$ that are not. This is because we want the positive edges to stay inside clusters, and negative edges to exists only between clusters. The problem is to find a partition of $V$ of minimum cost. We are going to show that there exists a $3$-approximation for it.
 

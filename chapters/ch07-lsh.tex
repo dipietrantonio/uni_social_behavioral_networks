@@ -1,0 +1,45 @@
+\chapter{Locality Sensitive Hashing}
+
+Locality Sensitive Hashing (LSH) is an algorithmic scheme used to reduce the dimensionality of high dimensional data and to find the similar objects. An example of LSH that we will see was introduced in the Altavista search engine back in the Nineties to recognize duplicate pages. As an example consider a web page as a subset of the \emph{universe} $U$, the set of all the English words. If we assign each word an integer, the universe is the set of the fist $N$ numbers. So, given two sets $A, B \subseteq U$, we want to compute the degree of similarity between them.
+
+\section{Jaccard and Hamming similarities}
+
+We now introduce two similarities over sets, the Jaccard similarity and Hamming similarity.
+
+\begin{defn}
+	The Jaccard similarity between two sets $A$ and $B$ is defined as
+	\begin{equation}
+		J(A, B) = \frac{|A \cap B|}{|A \cup B|}.
+	\end{equation}
+\end{defn}
+
+Think of a page as a set of words. We want to claim that two pages are the same or very similar if their Jaccard similarity is high. It easy to show that the Jaccard similarity is always between 0 and 1.
+
+\begin{defn}
+	Given two sets $A, B \subseteq [n]$, the Hamming similarity, or Hamming distance, between $A$ and $B$ is defined as
+	\begin{equation}
+		H(A, B) = \frac{|A \cap B| + |\overline{A\cup B}|}{n}.
+	\end{equation}
+\end{defn}
+
+So this similarity gives an additive factor of $\frac{1}{n}$ for each element that is in both sets and for each element which is not in either sets. We can see $A$ and $B$ as characteristic vectors this time, where there is a $1$ at the $i$-th position if $i$ is part of the set, $0$ otherwise. There is an increase in similarity whenever the same coordinate $i$ leads to the same value in both vectors. People haven't used Hamming similarity to compare web pages because these vectors would be huge and most elements would be zero, since the number of words in a web page is much less than the number of words in the English dictionary.
+
+Now we are going to give an \emph{LSH scheme} for each similarity introduce. We haven't defined what is a LSH yet, but for now think of it as an algorithm which takes a set and reduces it to a small number, i.e. $O(\log(n))$, bits; this operation is called \emph{sketching}. Obviously, in order to compress so much information we have to lose something; but we will keep enough information to get a sense of what the similarity of two ``fingerprints'' is.
+
+\subsection{Shingles}
+The LSH for the Jaccard similarity is called \emph{Shingles}. What it does is the following:
+
+\begin{enumerate}
+	\item Sample a permutation $\pi$ of $[n]$ uniformly at random.
+	\item Define the hash function $h_\pi : 2^U \rightarrow U$ as
+	\begin{equation}
+	h_\pi(S) = \text{the element of S having minimum rank in } \pi.
+	\end{equation}
+	\item As sets $S$ are shown to the algorithm, sketch them to $h_\pi(S)$.
+\end{enumerate}
+
+As an example, consider the set $S = \{1, 2, 5\}$ and the permutation 
+
+$$\pi = 3 < 2 < 4 < 5 < 1.$$
+
+Then, $h(S) = 2$.
