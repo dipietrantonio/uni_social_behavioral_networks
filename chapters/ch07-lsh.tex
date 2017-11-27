@@ -26,7 +26,8 @@ So this similarity gives an additive factor of $\frac{1}{n}$ for each element th
 
 Now we are going to give an \emph{LSH scheme} for each similarity introduce. We haven't defined what is a LSH yet, but for now think of it as an algorithm which takes a set and reduces it to a small number, i.e. $O(\log(n))$, bits; this operation is called \emph{sketching}. Obviously, in order to compress so much information we have to lose something; but we will keep enough information to get a sense of what the similarity of two ``fingerprints'' is.
 
-\subsection{Shingles}
+\subsection{Examples of Locality Sensitive Hashing: Shingles and Hamming LSH}
+
 The LSH for the Jaccard similarity is called \emph{Shingles}. What it does is the following:
 
 \begin{enumerate}
@@ -43,3 +44,357 @@ As an example, consider the set $S = \{1, 2, 5\}$ and the permutation
 $$\pi = 3 < 2 < 4 < 5 < 1.$$
 
 Then, $h(S) = 2$.
+
+\begin{lem}
+	\begin{equation}
+		\forall S, T\ \pr{h_\pi(S) = h_\pi(T)} = \frac{|S \cap T|}{|S \cup T|}.
+	\end{equation}
+\end{lem}
+\begin{proof}
+	The event $\{h_\pi(S) = h_\pi(T)\}$ happens when the minimal ranked element of $S\cup T$ is in $S \cap T$, so the lemma follows.
+\end{proof}
+
+What if the set you want to scketch is the empty set? This is a minimal thing, we can scatcht the set to a special $\star$ value. This way of choosing hash function, a way to guarantee that the propability that the probability that two set hashes are equal is their measure of similarity, is essentially what an LSH is.
+
+Different similarities will require different ways to pick hash functions to guarantee this property.
+
+
+For the Hamming similarity, the following Locality Sensitive Hashing is provided.
+
+\begin{enumerate}
+	\item Pick $i \in [n]$ uniformly at random.
+	\item Define
+	\begin{equation}
+	h_i(S) = \begin{cases} 1 & i\in S\\ 0 & \text{otherwise.}
+	\end{cases}
+	\end{equation}
+\end{enumerate}
+
+The above algorithm is a valid LSH scheme for the Hamming similarity because
+
+\begin{align}
+	\pr{h_i(S) = h_i(T)} & = \pr{h_i(S) = h_i(T) = 1} + \pr{h_i(S) = h_i(T) = 0}\\
+	& = \frac{|S \cap T|}{n} + \frac{\overline{|S \cup T|}}{n}\\
+	& = H(S, T). 
+\end{align}
+
+If we repeat the LSH scheme several times then you an get a good approximation of what the similarity between two sets it. To prove this, we will apply the Chernoff Bound.
+
+\begin{defn}[Chernoff Bound - Additive version]
+Let $X_1, X_2, \ldots, X_n$ be mutually independent and identically distributed random variables such that $\pr{X_i = 1} = p$. Then
+
+\begin{equation}\label{eq:chernoff_additive}
+	\pr{\left|\left(\avg_{i = 1}^n X_i\right) - p\right| > \varepsilon} \leq 2e^{-2n\varepsilon^2}.
+\end{equation}
+\end{defn}
+
+It means that the empirical average of the $X_i$s will be close to their expectation, and will deviate more than $\varepsilon$ with an exponentially decreasing probability (once we normalize the $\varepsilon$ to 1).
+
+Suppose we want to use Shingles. Define
+
+\begin{equation}
+X_i = \begin{cases} 1 & h_\pi(S) = h_\pi(T)\\ 0 & \text{otherwise.}\end{cases}
+\end{equation}
+
+Then, $E[X_i] = J(S, T)$. Let
+
+\begin{equation}
+X = \avg_{i = 1}^n{X_i}
+\end{equation}
+
+By the Chernoff Bound
+
+\begin{equation}
+\pr{ | X - J(S, T)| > \varepsilon} \leq 2e^{-2n\varepsilon^2}.
+\end{equation}
+
+If we let 
+
+\begin{equation}
+ n = \frac{1}{2\varepsilon^2}\ln\left(\frac{2}{\delta}\right)
+\end{equation}
+
+then the probability in Inequality \ref{eq:chernoff_additive} is upper bounded by $\delta$.
+
+\section{Building a LSH}
+
+The typical question is, given a new similarity, can a LSH be found for it? Can we find a LSH in every case? First, let's define what a similarity and a Locality Sensitive Hashing scheme is.
+
+\begin{defn}[Similarity]
+	A similarity $S$ on an universe $U$ is a symmetric function $S: U\times U \rightarrow [0, 1]$.
+\end{defn}
+
+\begin{defn}[Locality Sensitive Hashing]
+	A Locality Sensitive Hashing for a similarity $S$ is a probability distribution over the hash functions operating on $U$, which satisfies
+	\begin{equation}
+		\forall A, B \in U\ \pr{h(A) = h(B)} = S(A, B).
+	\end{equation}
+\end{defn}
+\begin{obs}
+	Not every similarity admits a LSH scheme.
+\end{obs}
+\begin{proof}
+consider the universe $\{A, B, C\}$, and the similarity function $S$ defined as $S(A, B) = 1$, $S(A, C) = 1$, $S(B, C) = 0$. Suppose a LSH exists fo this similarity, then it should guarantee that
+
+$$\pr{h(A) = h(B)} = 1\ \wedge\ \pr{h(A) = h(C)} = 1$$
+
+
+which implies that
+
+$$\forall h, \text{LSH}(h) > 0,\ h(A) = h(B) \wedge  h(A) = h(C).$$
+
+This means that, no matter which hash function we come up with, it must put $A$ and $B$ in the same bucket since the probability they hash to the same value is $1$. 
+
+Then by transitivity, $$\pr{h(A) = h(C)} = 1$$ which is in contradiction with our hypothesis.
+\end{proof}
+
+\begin{lem}\label{lem:lsh:triangle_ineq}
+	If a similarity $S$ admits a LSH, them $1-S$ satisfies the triangle inequality. Formally,
+	\begin{equation}
+		\forall A, B, C \subseteq U\ 1 - S(A, B) \leq (1 - S(A, C)) + (1 - S(B, C)).
+	\end{equation}
+\end{lem}
+\begin{proof}
+	We have to show that
+	\begin{equation}
+		\pr{h(A) \neq h(B)} \leq \pr{h(A) \neq h(C)} + \pr{h(B) \neq h(C)}.
+	\end{equation}
+	
+	We can split the LHS in three cases.
+	\begin{multline} \label{ineq:lsh:triangle_ineq:1}
+		\pr{h(A) \neq h(B)} = \pr{h(A) = h(C) \neq h(B)} + \\ \pr{h(A) \neq h(B) = h(C)} + \pr{h(A) \neq h(B) \neq h(C)}.
+	\end{multline}
+	
+	Notice that
+	\begin{equation}\label{ineq:lsh:triangle_ineq:2}
+		\pr{h(A) \neq h(B) = h(C)} + \pr{h(A) \neq h(B) \neq h(C)} \leq \pr{h(A) \neq h(C)}.
+	\end{equation}
+
+		This is true because the event on the RHS happens also in the LHS (but not viceversa). 
+		
+		Now we can substitute Inequality \ref{ineq:lsh:triangle_ineq:2} into Equation \ref{ineq:lsh:triangle_ineq:1}.
+\end{proof}
+
+This is useful when checking if a similarity admits a LSH. Unfortunately, a similarity which do not admit an LSH but can satisfy the condition above. A complete test is NP-Hard.
+\section{Sorensen-Dice similarity}
+
+Let us try to apply the Lemma \ref{lem:lsh:triangle_ineq} to a similarity that resembles the Jaccard one. 
+\begin{defn}[The Sorensen-Dice similarity]
+	The Sorensen-Dice similarity is defined as
+	
+	\begin{equation}
+	D(A, B) = \frac{|A \cap B|}{|A \cap B| + \frac{1}{2}|A \triangle B|},
+	\end{equation}
+	where $A\triangle B = (A \cup B) -  (A \cap B)$.
+\end{defn}
+
+\begin{claim}
+	 The Sorensen-Dice similarity does not admit an LSH.
+\end{claim}
+\begin{proof}
+We are going to provide an example. Take $A = \{1\}$, $B = \{2\}$, $C = \{1, 2\}$. Then
+$$1 - D(A, B) = 1,$$ 
+$$1 - D(A, C) = 1 - \frac{1}{1 + \frac{1}{2}} = \frac{1}{3} = 1 - D(B, C).$$
+
+$1 - D$ does not satisfy the triangle inequality and so, by Lemma \ref{lem:lsh:triangle_ineq}, $D$ doesn't admit a LSH scheme. 
+\end{proof}
+
+Observe that if we parametrize $D$ with $\alpha$ in place of the constant $\frac{1}{2}$ then we get
+
+$$1 - D(A, C) = \frac{\alpha}{1 + \alpha}$$
+
+To satisfy the triangle inequality must be that
+
+\begin{align*}
+	&1 \leq \frac{2\alpha}{1 + \alpha}\\
+	&\implies 1 + \alpha \leq 2\alpha\\
+	&\implies 1 \leq \alpha.
+\end{align*}
+
+If $\alpha = 1$ then we get the Jaccard similarity. For larger $\alpha$, we are going to use a generic technique with allows to get a new LSHs out of all LSHs.
+
+Known LSH to LSH for other similarities. in fact we will be able to use it on the Jaccard similarity. We will get there through steps. Let's start with the following lemma.
+
+\begin{lem}\label{lem:lsh:comp}
+	If $S$ and $T$ are similarities which admit a LSH, them $S\circ T$ admits a LSH.
+\end{lem}
+\begin{proof}
+	Sample a hash function $h_S$ from the LSH of $S$ and a hash function $h_T$ from the LSH of $T$. The new hash function $h$ is a concatenation.
+	\begin{equation}
+		h(A) = (h_S(A), h_T(A))\ \forall A.
+	\end{equation}
+	
+	Then 
+	\begin{equation}
+		h(A) = h(B) \Longleftrightarrow h_S(A) = h_S(B) \wedge h_T(A) = h_T(B).
+	\end{equation}
+	
+	\begin{align}
+	\pr{h(A) = h(B)} &= \pr{h_S(A) = h_S(B)} \pr{h_T(A) = h_T(B)} \tag{$h_T$ and $h_S$ are chosen independently}\\
+	 &= S(A, B) T(A, B).
+	\end{align}
+\end{proof}
+
+Lemma \ref{lem:lsh:comp} already gives us a way to create a new LSH.
+
+
+\begin{claim}\label{clm:lsh:z}
+	The similarity $Z:U \times U \rightarrow [0, 1]$ defined as $\forall A, B\ Z(A, B) = 1$ admits a LSH.
+\end{claim}
+\begin{proof}
+	Define a LSH such that each hash function $h$ returns a constant value $\star$.
+\end{proof}
+
+\begin{lem}\label{lem:lsh:power}
+	For each similarity $S$ that admits a LSH, $S^i$ admits a LSH, $\forall i \geq 0$.
+\end{lem}
+\begin{proof}
+	We will prove it by a simple induction. The base case is $S^0 = Z$, where $Z$ is defined and proven to admit a LSH in Claim \ref{clm:lsh:z}. Now assume this is true up until $i$, and we want to prove it for $i + 1$. By induction, $S^i$ admits a LSH; $S$ admits a LSH too by hypothesis. It follows that, by Lemma \ref{lem:lsh:comp}, also $S^{i+1} = S^i\circ S$ admits a LSH.
+\end{proof}
+
+This is 
+
+\begin{lem}\label{lem:lsh:avg}
+	Let $(p_0, p_1, \ldots, p_i, \ldots)$ is a probability distribution, and let $S_0, S_1, \ldots, S_i, \ldots$ be similarities on the universe $U$ admitting LSHs. Define
+	\begin{equation}
+		S = \sum_{i=0}^\infty (p_iS_i).
+	\end{equation}
+	The \emph{average similarity} $S$ admits a LSH.
+\end{lem}
+\begin{proof}
+	Sample with probability $p_i$ the index $i$. Next, sample $h_i$ from the LSH of $S_i$. The new hash function $h$ is the following:
+	\begin{equation}
+		h(\cdot) = (i, h_i(\cdot)).
+	\end{equation}
+	
+	One can see that, for $A, B \subseteq U$
+	\begin{equation}
+		\pr{h(A) = h(B)} = \sum_{i=0}^\infty (p_i \pr{h_i(A) = h_i(B)}).
+	\end{equation}
+\end{proof}
+
+\begin{thm}\label{thm:lsh:thm1}
+	If $(p_0, p_1, \ldots, p_i, \ldots)$ is a probability distribution and if a similarity $S$ admits a LSH, then 
+	\begin{equation}
+		P = \sum_{i=0}^\infty (p_iS^i)
+	\end{equation}
+	
+	admits a LSH.
+\end{thm}
+\begin{proof}
+	It follows by Lemma \ref{lem:lsh:power} and Lemma \ref{lem:lsh:avg}
+\end{proof}
+
+ 
+The expression $\sum_{i=0}^\infty (p_iS^i)$ is a power sequence where the coefficients are a probability distribution. This function is called \emph{Probability Generating Function} (PGF).
+
+As an example of how to apply Theorem \ref{thm:lsh:thm1} consider the following function.
+\begin{equation}
+	f(x) = \sum_{i=1}^\infty (2^{-i}x^i) = \frac{x}{2 - x}.
+\end{equation}
+(assume that for $i=0$ the coefficient is $0$). We know that
+\begin{equation}
+	\sum_{i=1}^\infty 2^{-i} = 1
+\end{equation}
+is a probability distribution. This means $f$ is a PGF. Let us apply $f$ to the Jaccard similarity to obtain a new similarity $W$.
+
+\begin{align}
+	W(A, B) &= f\left(\frac{|A \cap B|}{|A \cup B|}\right) \\
+	&= \frac{\frac{|A \cap B|}{|A \cup B|}}{2 - \frac{|A \cap B|}{|A \cup B|}}\\
+	& = \frac{|A \cap B|}{2|A \cup B| - |A \cap B|}\\
+	& = \frac{|A \cap B|}{|A \cup B| + (|A \cup B| - |A \cap B|)}\\
+	& = \frac{|A \cap B|}{|A \cup B| + |A \triangle B|}\\
+	& = \frac{|A \cap B|}{|A \cap B| + 2|A \triangle B|}\\
+	&= D_2(A, B).
+\end{align}
+
+So we obtained the Dice ``two'' similarity. How do we actually build a LSH for $D_2$? We can roll back the step we saw. Sample an $i$ with the given probability distribution and then stitch together $i$ different shingles. How do we get $J^i$? Just pick $i$ permutations and hash one set $S$ to the sequence of \emph{min-hashes} $h_{\pi_1}(S), h_{\pi_2}(S), \ldots$. The probability that the two hashes are the same is the sum over the $i$ permutations [TO BE COMPLETED]
+
+One issue is with this approach is that the hashes could become large, but observe that this happens with an exponentially decreasing probability.
+
+We proved that for $\alpha \in \{1, 2\}$, the associated Dice similarity admits a LSH. What about other $\alpha$'s? We use a different PGF for each value.
+
+\begin{equation}
+	\forall c > 1\ f_c(x) = (c-1)\frac{x}{c-x} = \sum_{i=1}^\infty \left(\frac{c-1}{c^i} x^i\right).
+\end{equation}
+
+Given the above PGF, let us apply the same steps as we did earlier to compute the new similarity $W$.
+
+\begin{align}
+W(A, B) &= f_c\left(\frac{|A \cap B|}{|A \cup B|}\right) \\
+&= \frac{\frac{|A \cap B|}{|A \cup B|}(c-1)}{c - \frac{|A \cap B|}{|A \cup B|}}\\
+& = \frac{|A \cap B|(c-1)}{c|A \cup B| - |A \cap B|}\\
+& = \frac{|A \cap B|(c-1)}{c(|A \cap B| + |A \triangle B|) - |A \cap B|}\\
+& = \frac{|A \cap B|(c-1)}{|A \cap B|(c-1) + c|A \triangle B|}\\
+& = \frac{|A \cap B|}{|A \cap B| + \frac{c}{c-1}|A \triangle B|}\\
+&= D_\frac{c}{c-1}(A, B).
+\end{align}
+
+So we can conclude that
+\begin{equation}
+	\alpha = \frac{c}{c-1} \Longleftrightarrow c > 1 \wedge \alpha > 1.
+\end{equation}
+
+Until now, we have applied the PGF to the Jaccard similarity. Do we obtain some result by applying $f$ to a different similarity? We can use the Hamming similarity.
+
+\begin{equation}
+	H_\alpha(A, B) = \frac{|A \cap B| + |\overline{A \cup B}|}{|A \cap B| + |\overline{A \cup B|} + | A \triangle B|\alpha}.
+\end{equation}
+
+We have already have seen $H_1$ admits a LSH, whereas for $H_\alpha,\ \alpha \in (0, 1)$, it can be shown that the triangle inequality (Lemma \ref{lem:lsh:triangle_ineq}) is not satisfied. If $\alpha \geq 1$ then we can find a LSH using $f_c$.
+
+Why do we care finding other similarities? It is useful because empirical scientists (biologists, machine learning experts) have they own $\alpha$ which they care about. If someone cared about $\alpha = \frac{1}{2}$ sadly we would tell him that no LSH can be associated to that similarity. However, one could ask something a little bit less satisfying but still useful. One thing that the triangle inequality result doesn't tell us is whether an \emph{approximate LSH} can be found. Think of this as what we usually talk about in approximation algorithms. Is the case we can find a LSH for something ``multiplicatively close'' to $D_\alpha$?
+
+\begin{defn}[LSH approximation]
+	The LSH distortion of a similarity $S$ is the minimum $\delta \geq 1$ s.t. 	$\exists S'\ S': U \times U \rightarrow [0, 1]$ with a LSH and such that
+	\begin{equation}
+	 \forall \{A, B\} \in \binom{U}{2}\ \frac{1}{\delta} S(A, B) \leq S'(A,B) \leq S(A, B).
+	\end{equation}
+\end{defn}
+
+If, as an example, we would like to find an approximate LSH for $D_\frac{1}{2}$, we could just use the LSH for Jaccard similarity, and if we do, we approximate $D_\frac{1}{2}$ by a factor slightly better than $2$, and as $n$ goes to infinity it converges to $2$.
+
+We have a similarity and we are trying to distort it just enough for the distorted similarity to allow a LSH. If $\delta$ is is the minimal distortion, then it means there must exist a similarity $S'$ which admits a LSH and that it is sandwiched between the original similarity $S$ and $S$ divided by $\delta$.
+
+Now we are going to prove that, in fact, Jaccard similarity gives the minimum $\delta$ such that the distorted similarity (which ends up being Jaccard similarity) admits a LSH. To do so we need the following lemma.
+
+\begin{lem}\label{lem:lsh:dist_elements}
+	Suppose that $S:U\times U: \rightarrow [0, 1]$ admits a LSH and $\exists \mathcal{X}, \emptyset \subset \mathcal{X} \subseteq U$, satisfying 
+	\begin{equation} 
+	\forall \{x, x'\} \in \binom{\mathcal{X}}{2}\ S(x, x') = 0.
+	\end{equation} 
+	Then 
+	\begin{equation}
+	\forall y \in U \exists x^\star \in \mathcal{X}\ S(x^\star, y) \leq \frac{1}{|\mathcal{X}|}.
+	\end{equation}
+\end{lem}
+
+\begin{claim}
+	The Jaccard similarity offers the best approximation for $D_\frac{1}{2}$.
+\end{claim}
+
+How can we use Lemma. Maybe as my set of objects we pick all the singletons, so
+
+\begin{equation}
+	\mathcal{X} = \{\{1\},\{2\}, \ldots, \{n\}\}
+\end{equation}
+
+Is it the case that for any two object is going to be 0? Yes, because the intersection between any two sets is zero.
+
+Define
+
+\begin{equation}
+	y = [n]
+\end{equation}
+
+So 
+
+\begin{equation}
+	D_\alpha = (\{i\}, y) = \frac{1}{1 + \alpha(n-1)}
+\end{equation}
+
+On the other end, Lemma \ref{lem:lsh:dist_elements} tells us that if $D_\alpha$ admits a LSH then $$\exists i^\star\ D_\alpha(\{i^\star\}, y) \leq \frac{1}{n}.$$
+
+It cannot be true at the same time
+
+if $\alpha$ is less than 1, say $\frac{1}{2}$ then this is roughly $\frac{2}{n}$ while this is $\frac{1}{n}$. This means we have to distort $\alpha$ by at least $2$, and in general by $\frac{1}{2}$, which mean that the best approximation is Jaccard.

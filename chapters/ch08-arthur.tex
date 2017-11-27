@@ -1,0 +1,177 @@
+\chapter{Arthur's Model}
+
+In this chapter we are going to look at a model that was introduced in economic theory and which describes how products get adopted in social networks. This model has been very influential and was proposed by Arthur.
+
+We start studying it as a probabilistic exercise, and then we are going to generalize it so to get an optimization problem will have some relevance in the adoption of products (think of iPhone versus Android phones). It is an economic model, so you should think about it as a bunch of people each having a personal objective function to optimize. The strategies chosen by the users can interact with each other but each user will have a goal to optimize his gain.
+
+\section{Model description}
+In the model there are $n \geq 2$ users, and two products $A$ and $B$. Suppose we are talking about phones, and $A$ is an Android phone and $B$ is an iPhone. If a user buys its preferred product, he gains some generic value $x > 0$. Suppose that in a community of $K$ people, the first 2 people buy an Android phone; then maybe their friends think of buying Android too, since they could use the same applications; so maybe I do get something by buying an Android even though I prefer an iPhone. Why whould I make this choice? Maybe there are more people with Android than iPhone. So there is this friction between what I want and what I should use. 
+
+The user also gets a so called \emph{externality} of $\delta > 0$ per each user that has already bought the product that he will buy. The user then wants to optimize the sum of the two function.
+
+Assume the user has $m_A$ friends who have bought product $A$ and $m_B$ friends who have bought product $B$. Then, the user's gain depend on what he prefers and what he should buy. The quantities are presented in the following table.
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{|c|c|c|}
+		\hline
+		& Buys $A$ & Buys $B$\\\hline
+		Pref. on $A$ & $x + \delta{m_a}$ & $\delta{m_b}$\\\hline
+		Pref. on $B$ & $\delta{m_a}$ & $x + \delta{m_b}$\\\hline
+	\end{tabular}
+	\caption{Gain table for the user based on what he prefers and what he buys.}
+\end{table}
+
+This setting is called in economic theory as \emph{miopic}, that is, users don't think about what might happen in the future. Arthur studied this process on a clique, so the concept of friend doesn't have a meaning in that case. What would happen if this process is run on a clique?
+
+Each user has a i.i.d. preference which we can represent with a random variable
+\begin{equation}
+	P = \begin{cases}
+	A & \text{with prob. } p,\\
+	B & \text{with prob. } 1 -p.
+	\end{cases}
+\end{equation}
+
+The model is fully specified. Now we ask what is the final distribution of the vertices when the process ends. This depends on different things. What we will show that as long as $x$, $\delta$ and $p$ are constants, we will end up with either $99.9\%$ of people buying product $A$ or $99.9\%$ of people buying product $B$. With $99.9\%$ we mean $n - O(1)$. This model shows that this cascade effect actually happens.
+
+\begin{lem} \label{lem:arth:c}
+	Let $C = \lceil\delta^{-1}x\rceil$. If at some point in time $|m_A - m_B| \geq C$, then the majority product will become locked in (everybody will continue to buy that product).
+\end{lem}
+\begin{proof}
+	We have that
+	\begin{align}
+		&|m_A - m_B| \geq C\\
+		&\implies \delta|m_A - m_B| \geq x.
+	\end{align}
+	
+	So, assuming w.l.o.g. that $A$ is the majority product when $\delta m_A \geq x + \delta m_B$ becomes true. Then the the remaining users will choose always product $A$ from that time on, no matter what his preference is (to handle equality, we can assume that the numbers are rationals or that at equality the user will go with the majority anyway).
+\end{proof}
+
+\begin{claim}
+	Let's assume WLOG that $p \leq \frac{1}{2}$ and let $n$ be the number of people. Then
+	\begin{equation}
+		E[\text{\# of A purchases}] \geq p^Cn.
+	\end{equation}
+\end{claim}
+\begin{proof}
+	According to Lemma \ref{lem:arth:c}, the fist $C$ people will choose the product they prefer because the externality is not huge enough. We have that
+	\begin{equation}
+		\pr{\text{Each of the first } c \text{ people prefer } A} = p^C.
+	\end{equation}
+	
+	Once the fist $C$ people decided their product, the remaining ones will have to buy the majority product. So
+	
+	\begin{multline}
+			E[\text{\# of A purchases}] \geq E[\text{\# of A purchases } | \text{ the first C people bought A}]\\ \pr{\text{Each of the first } c \text{ people prefer } A} = p^Cn.
+	\end{multline}
+\end{proof}
+This lower bound is tight. One can also prove an upper bound which says that the expected number of purchases would be $O(p^Cn)$. What happens here is a simple process. The only think that matter is that as soon as one product gets a $C$ edge over the other, everything is done. We are actually taking a walk on a Markov chain, with $2C + 1$ states, which serve as counters. Imagine them arranged on a line. The central state is labeled has a count of 0. The count decreases to the left up until $-C$ and increases to the right up until $C$. In a given state, we move to the left with probability $1 -p$ and to the right with probability $p$. The Markov chain, then, represents the random process which will decide which product will the majority product, and it happens as soon as the the Markov chain will transit in state $C$ (product $A$) or state $-C$ (product $B$). The probability of ending up in state $C$ from state $0$ is $p^C$.
+
+Another thing we said about this process is that, with high probability, $n - O(1)$ people are going to buy the same product. This is true because the only people who bought the ``loser product'' did so when the majority product still hadn't established itself (i.e. the $|m_A - m_B| < C$). This means that the number of people who bought the loser product is independent of $n$, i.e. is constant in $n$. It follows that the total number of people who bought the majority product is $n - O(1)$.
+
+\section{Arthur's model on social networks}
+
+This process explains why one product might end up getting most of the market share even though it may be the inferior one. The reason is that people tend to copy what others have done. Now, we would like to take this process and see how it behaves on more complex social networks (i.e. that are not a clique). In fact, it is not the case that every person knows what others have done.
+
+As an example, take an independent set to model users. There are no edges, so every user makes his choice independently from others, resulting in the expected number of $A$ purchases being $np$. In a clique, the that number is $\Theta(p^Cn)$ (we have only proven the lower bound, and left the upper bound as an exercise). In both cases the order in which users are considered does not matter. This is not the case in a generic situation.
+
+We would like to give an algorithm that, for any graph, provides a strategy to to ask to buy something. This strategy will give us in expectation $p^Cn$ on the minority option for any graph $G$. It is easy to see that the clique is the wort case for the minority option. For the majority option there are similar results but, for simplicity, assume that we want to help the spread of the minority object. The way we work on this model is the following. We pick one person that hasn't bought anything yet and ask him to buy product $A$ or $B$. He applies his preference and rules to decide what to buy and we observe its decision (we assume we can do that, and it is actually accurate since online social networks can). Based on the decision the user took, we select other people to repeat the process. 
+
+Before presenting a strategy that will work on every graph, let's see what happens on particular graphs. We have already seen the independent set and a clique; now consider a complete bipartite graph. If we take one side of the graph, the nodes in it will form an independent set. If we schedule those nodes in any order, the expected number of $A$ purchases is $p\frac{n}{2}$. This leads to a first strategy we could use.
+
+\begin{algorithm}
+	\textbf{Input}: A bipartite graph of sides $S$ and $T$ ($|S| \geq |T|$)\\
+	Schedule all the nodes in $S$\;
+	Continue as you like\;
+\end{algorithm}
+
+ If we were to do that then the expected number of $A$ purchases is going to be at least $|S|p = \frac{n}{2}p$. This approach would be good if you have or you can find independent set. But we know it is NP-hard. 
+ 
+ Another example is a graph which have a bunch of small cliques $k_C$ of size $C$ each; think of them disposed on the boundary of the graph. Then we have a large clique in the middle of $\Theta(n)$ nodes. What we can do is to select a $k_C$ clique and schedule the nodes. Since there are $C$ nodes, each of them makes the choice independently and everybody will choose $A$ with probability $p^C$. In the best scenario everybody chose $A$, so we can use the clique as a seed to push the $A$ preference to the central clique.
+ 
+ To do so, the central clique is partitioned in set of $C$ nodes each, and then create a complete bipartite graph from one of the $k_C$ cliques to the set of $C$ nodes inside the bigger click. [TO BE SPECIFIED BETTER]
+ 
+ When all the users of a clique $k_C$ have chosen $A$ with probability $p^C$ we can push the preference to the other side od the bipartite graph, inside the bigger clique, which will be forced to stick to that decision, since $C$ neighbors chose $A$. We could not be so lucky to get all the users in the first $k_C$ clique to buy product $A$; if so, we move to another clique and run the experiment again. But after a while we will find a clique where the users all buy product $A$ (and that push this preference inside the big clique). After few successful runs, we have more preferences for product $A$ inside the bigger clique than preferences for product $B$ in the boundary cliques $k_C$. This idea tells you that we can get $99\%$ of the users to pick product $A$, or formally $n - o(n)$.
+ 
+Different graphs suggest different strategies to force people to buy a product. Now what we would like to do is to show what is the worst case that can happen in terms of $A$ sold [CHECK HERE].
+ 
+ We want to use the same idea applied to the bipartite graph, but it can have issues. Maybe the largest independent set doesn't exist or most of the people in the independent set chooses product $B$. 
+ 
+ The first thing we want to define is the $t$-degenerate graph.
+ 
+ \begin{defn}[$t$-generate graph]
+ 	A graph $G=(V, E)$ is $t$-degenerate if there exists an ordering of its nodes $v_1, \ldots, v_n$,  such that $\forall i \in [n]\ v_i$ has at most $t$ neighbors in $\{v_1, \ldots, v_{i-1}\}$.
+ \end{defn}
+
+For example, an independent set is $0$-degenerate. A clique is $(n-1)$-degenerate, since no matter how the nodes are ordered, the last one has $n-1$ edges going backward.
+
+\begin{defn}[degeneracy]
+	The degeneracy of a graph is the minimum value of $t$ such that $G$ is $t$-degenerate.
+\end{defn}
+
+Why this parameter, the degeneracy, is useful in this context? Remember that all in our process boils down to the $C$ value. 
+
+\begin{claim}
+	If $G$ is $(C-1)$-degenerate, then there exists a scheduling $\sigma$ such that the expected number of $A$ purchases obtained by applying $\sigma$ is at least $np$.
+\end{claim} 
+
+This means that, if the graph is $C$-degenerate, we can find an offline scheduling, i.e. that doesn't depend on the answers of the users, for which the expected number of $A$ purchases is at least $np$. This is because we can find the ordering that gives me a $(C-1)$ degeneracy and if we schedule users according to that ordering, we know that each user will have at most $C-1$ neighbors that have already made a choice and so he is able to make an independent choice.
+
+So it turns out that we don't really node an independent set for users to make a independent choice, but $(C-1)$-degeneracy is enough. The question now is, how do we find such ordering? Essentially, a greedy algorithm will do (left as an exercise).
+
+What follows is an algorithm to schedule users such that the expected number of users that will buy product $A$ is at least $p^Cn$, on every graph. This algorithm will have to be adaptive. It takes as input a subset $W \subseteq V$ of nodes for which the induced graph $G(W)$ is \emph{maximally $(C-1)$-degenerate}. It means that the graph $G(W)$ is $(C-1)$-degenerate and $\forall  v \in W\setminus V\ G(W \cup \{v\})$ is not $(C-1)$-degenerate. It will exists unless the full graph is $(C-1)$-degenerate in which case we can use the ordering suggested by the degeneracy.
+
+\begin{algorithm}
+	Let $W \subseteq V$ such that $G(W)$ is a maximally $(C-1)$-degenerate.\\
+	Let $w_1, w_2, \ldots, w_{|W|}$ be a degeneracy ordering\;
+	\For{$i = 1 \ldots, |W|$}{
+	Schedule $w_i$\;
+	\While{$\exists v \in V \setminus W$, unscheduled, having exactly $C$ scheduled neigbors in $W$, each of which has chosen $A$}{
+		Schedule $v$\;
+	}
+	}
+	Schedule the remaining nodes arbitrarily\;
+	\vspace{10pt}
+	\caption{A scheduling algorithm for maximizing the spread of a product.}
+	\label{alg:arth:schedule}
+\end{algorithm}
+
+Let's see what's happening. The fist thing is, if we only scheduled $w_i$, ignoring the subsequent lines, then I would get a $p$ fraction of the nodes in $W$, because they would take decision only using their preference. As soon as we have scheduled enough nodes in $W$ for a node in $V\setminus W$ to have $C$ neighbors inside $W$ that are chosen and all of them have chosen $A$, then $v$ is forced to choose $A$.
+
+Observe that for every node not in $W$ there will be one timr when exactly $C$ neighbors will have been scheduled inside $W$. This is true because we schedule one node in $W$ at time. If at the end there was a node $v$ not in $W$ which has less than $C$ neighbors inside $W$, then $G(W)$ wasn't a maximally $(C-1)$-degenerate graph.
+\begin{thm}
+	\begin{equation}
+		E[\text{\# A purchases produced by Algorithm \ref{alg:arth:schedule} }] \geq p^Cn.
+	\end{equation}
+\end{thm}
+
+\begin{proof}
+	
+	\begin{claim}
+		If $v \in W$, and if $v \in W$, and if $v$ prefers $A$, then $v$ buys $A$.
+	\end{claim}
+	\begin{proof}
+		The number of neighbors in $W$ is at most $C - 1$. So every node in $W$ will buy its preference, which is $A$ by assumption.
+	\end{proof}
+	
+	\begin{claim}
+		Each $v \in V \setminus W$ has at least $C$ neighbors in $W$.
+	\end{claim}
+	\begin{proof}
+		If this is not the case, then $G(W)$ is not maximally $(C-1)$-degenerate.
+	\end{proof}
+	\begin{claim}
+		$\forall v \in V \setminus W$, there will exist one point in time when $v$ has exactly $C$ scheduled neighbors in $W$. If all those neighbors prefer $A$, then $v$ will buy $A$. 
+	\end{claim}
+	\begin{proof}
+		The externality is greater than the personal preference gain.
+	\end{proof}
+	\begin{claim}
+		$\forall v \in V\setminus W\ \pr{\text{v buys A}} \geq p^C$.
+	\end{claim}
+	\begin{proof}
+		Because the probability of this event is at least the probability of the event that all the $C$ neighbors in $W$ choose $A$.
+	\end{proof}
+	\begin{claim}
+		$\forall v \in W\ \pr{\text{v buys A}} \geq p$.
+	\end{claim}
+\end{proof}
